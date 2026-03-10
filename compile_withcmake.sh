@@ -1,47 +1,23 @@
 #!/bin/bash
-cd "${0%/*}" || exit  # Run from current directory (source directory) or exit
+set -e
 
-case "$(uname)" in
-Darwin)
-    NCORES=$(sysctl -n hw.ncpu)
-    ;;
-*)
-    NCORES=$(getconf _NPROCESSORS_ONLN 2>/dev/null)
-    ;;
-esac
-[ -n "$NCORES" ] || NCORES=4
+NCORES=$(nproc 2>/dev/null || getconf _NPROCESSORS_ONLN 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
 
-rm -rf deploy
-rm -rf build
-mkdir build
+echo "Building SCC with ${NCORES} parallel jobs..."
 
-cmake -B build -S . -DCMAKE_BUILD_TYPE=Release $1
-(cd build && make -j)
-# (cd build && make -j $NCORES)
+rm -rf build deploy
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --parallel "${NCORES}"
 
-echo
-echo "Copying files into 'deploy'"
-mkdir deploy
+mkdir -p deploy
+cp build/scc \
+   build/scc_evolutionary \
+   build/scc_evaluator \
+   build/scc_graphchecker deploy/
 
-# Serial
-echo
-echo "... executables (serial)"
-for name in \
-    graphchecker \
-    evaluator \
-    signed_graph_clustering \
-    signed_graph_clustering_evolutionary 
-do
-    cp ./build/"$name" deploy/
-done
-
-echo
-echo "Created files in deploy/"
-echo =========================
-(cd deploy 2>/dev/null && ls -dF *)
-echo =========================
-echo
-echo "Can remove old build directory"
-echo
-
-# ------------------------------------------------------------------------
+echo ""
+echo "Done. Binaries are in ./deploy/"
+echo "  scc                - multilevel signed graph clustering"
+echo "  scc_evolutionary   - distributed memetic signed graph clustering (MPI)"
+echo "  scc_evaluator      - evaluate a clustering"
+echo "  scc_graphchecker   - check graph format"

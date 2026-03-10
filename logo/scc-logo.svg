@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 260">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#16213e"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="260" rx="16" fill="url(#bg)"/>
+
+  <!-- Left: Title and subtitle -->
+  <text x="50" y="90" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="52" font-weight="700" fill="#e0e0e0" letter-spacing="3">
+    <tspan fill="#4fc3f7">S</tspan><tspan fill="#4fc3f7">C</tspan><tspan fill="#4fc3f7">C</tspan>
+  </text>
+  <text x="50" y="125" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="16" fill="#90a4ae">
+    Scalable Correlation Clustering
+  </text>
+  <text x="50" y="155" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="13" fill="#607d8b">
+    Multilevel &amp; Memetic Signed Graph Clustering
+  </text>
+
+  <!-- Badge: Part of KaHIP -->
+  <rect x="50" y="180" width="130" height="26" rx="13" fill="#263238"/>
+  <text x="115" y="197" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#80cbc4" text-anchor="middle">Part of KaHIP</text>
+
+  <!-- Right side: Signed graph with clusters -->
+  <!-- Cluster 1 (blue) - top left group -->
+  <circle cx="520" cy="65" r="30" fill="#1565c0" opacity="0.15" stroke="#42a5f5" stroke-width="1" stroke-dasharray="4,3"/>
+  <circle cx="505" cy="55" r="8" fill="#42a5f5"/>
+  <circle cx="535" cy="55" r="8" fill="#42a5f5"/>
+  <circle cx="520" cy="80" r="8" fill="#42a5f5"/>
+  <!-- Positive edges within cluster 1 -->
+  <line x1="513" y1="55" x2="527" y2="55" stroke="#66bb6a" stroke-width="2"/>
+  <line x1="510" y1="61" x2="515" y2="74" stroke="#66bb6a" stroke-width="2"/>
+  <line x1="530" y1="61" x2="525" y2="74" stroke="#66bb6a" stroke-width="2"/>
+
+  <!-- Cluster 2 (orange) - right group -->
+  <circle cx="680" cy="90" r="35" fill="#e65100" opacity="0.12" stroke="#ff8a65" stroke-width="1" stroke-dasharray="4,3"/>
+  <circle cx="660" cy="75" r="8" fill="#ff8a65"/>
+  <circle cx="700" cy="75" r="8" fill="#ff8a65"/>
+  <circle cx="660" cy="105" r="8" fill="#ff8a65"/>
+  <circle cx="700" cy="105" r="8" fill="#ff8a65"/>
+  <!-- Positive edges within cluster 2 -->
+  <line x1="668" y1="75" x2="692" y2="75" stroke="#66bb6a" stroke-width="2"/>
+  <line x1="660" y1="83" x2="660" y2="97" stroke="#66bb6a" stroke-width="2"/>
+  <line x1="700" y1="83" x2="700" y2="97" stroke="#66bb6a" stroke-width="2"/>
+  <line x1="668" y1="105" x2="692" y2="105" stroke="#66bb6a" stroke-width="2"/>
+
+  <!-- Cluster 3 (purple) - bottom left group -->
+  <circle cx="540" cy="190" r="32" fill="#6a1b9a" opacity="0.15" stroke="#ba68c8" stroke-width="1" stroke-dasharray="4,3"/>
+  <circle cx="525" cy="175" r="8" fill="#ba68c8"/>
+  <circle cx="555" cy="175" r="8" fill="#ba68c8"/>
+  <circle cx="540" cy="205" r="8" fill="#ba68c8"/>
+  <!-- Positive edges within cluster 3 -->
+  <line x1="533" y1="175" x2="547" y2="175" stroke="#66bb6a" stroke-width="2"/>
+  <line x1="530" y1="181" x2="535" y2="199" stroke="#66bb6a" stroke-width="2"/>
+  <line x1="550" y1="181" x2="545" y2="199" stroke="#66bb6a" stroke-width="2"/>
+
+  <!-- Cluster 4 (teal) - bottom right group -->
+  <circle cx="720" cy="200" r="30" fill="#004d40" opacity="0.15" stroke="#4db6ac" stroke-width="1" stroke-dasharray="4,3"/>
+  <circle cx="705" cy="190" r="8" fill="#4db6ac"/>
+  <circle cx="735" cy="190" r="8" fill="#4db6ac"/>
+  <circle cx="720" cy="215" r="8" fill="#4db6ac"/>
+  <!-- Positive edges within cluster 4 -->
+  <line x1="713" y1="190" x2="727" y2="190" stroke="#66bb6a" stroke-width="2"/>
+  <line x1="710" y1="196" x2="715" y2="209" stroke="#66bb6a" stroke-width="2"/>
+  <line x1="730" y1="196" x2="725" y2="209" stroke="#66bb6a" stroke-width="2"/>
+
+  <!-- Negative edges between clusters (red, dashed) -->
+  <!-- Cluster 1 to Cluster 2 -->
+  <line x1="543" y1="55" x2="652" y2="75" stroke="#ef5350" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.7"/>
+  <!-- Cluster 1 to Cluster 3 -->
+  <line x1="520" y1="88" x2="530" y2="167" stroke="#ef5350" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.7"/>
+  <!-- Cluster 2 to Cluster 4 -->
+  <line x1="700" y1="113" x2="715" y2="182" stroke="#ef5350" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.7"/>
+  <!-- Cluster 3 to Cluster 4 -->
+  <line x1="563" y1="180" x2="697" y2="190" stroke="#ef5350" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.7"/>
+  <!-- Cluster 2 to Cluster 3 -->
+  <line x1="652" y1="105" x2="563" y2="175" stroke="#ef5350" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.7"/>
+
+  <!-- Legend -->
+  <line x1="810" y1="85" x2="840" y2="85" stroke="#66bb6a" stroke-width="2.5"/>
+  <text x="848" y="89" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#a0a0a0">+</text>
+  <line x1="810" y1="110" x2="840" y2="110" stroke="#ef5350" stroke-width="2" stroke-dasharray="6,4"/>
+  <text x="848" y="114" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#a0a0a0">&minus;</text>
+
+  <!-- Multilevel arrow hint at bottom -->
+  <text x="620" y="250" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#546e7a" text-anchor="middle">
+    multilevel coarsening &amp; refinement
+  </text>
+  <!-- Small arrow -->
+  <line x1="530" y1="245" x2="555" y2="238" stroke="#546e7a" stroke-width="1"/>
+  <line x1="555" y1="238" x2="570" y2="245" stroke="#546e7a" stroke-width="1"/>
+  <line x1="570" y1="245" x2="590" y2="238" stroke="#546e7a" stroke-width="1"/>
+  <line x1="590" y1="238" x2="610" y2="245" stroke="#546e7a" stroke-width="1"/>
+  <polygon points="700,241 710,238 700,235" fill="#546e7a"/>
+  <line x1="610" y1="245" x2="640" y2="238" stroke="#546e7a" stroke-width="1"/>
+  <line x1="640" y1="238" x2="670" y2="241" stroke="#546e7a" stroke-width="1"/>
+  <line x1="670" y1="241" x2="700" y2="238" stroke="#546e7a" stroke-width="1"/>
+</svg>
