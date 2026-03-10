@@ -14,7 +14,7 @@ SCC v1.0
 =====
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/KaHIP/ScalableCorrelationClustering/main/logo/scc-logo.svg" alt="SCC Logo" width="900"/>
+  <img src="https://raw.githubusercontent.com/KaHIP/ScalableCorrelationClustering/main/logo/scc-logo.png" alt="SCC Logo" width="900"/>
 </p>
 
 **SCC** (Scalable Correlation Clustering) is a framework for clustering signed graphs, where edges carry positive (attraction) or negative (repulsion) weights. Part of the [KaHIP](https://github.com/KaHIP) organization.

@@ -83,7 +83,7 @@
   <line x1="810" y1="85" x2="840" y2="85" stroke="#66bb6a" stroke-width="2.5"/>
   <text x="848" y="89" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#a0a0a0">+</text>
   <line x1="810" y1="110" x2="840" y2="110" stroke="#ef5350" stroke-width="2" stroke-dasharray="6,4"/>
-  <text x="848" y="114" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#a0a0a0">&minus;</text>
+  <text x="848" y="114" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#a0a0a0">&#x2212;</text>
 
   <!-- Multilevel arrow hint at bottom -->
   <text x="620" y="250" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#546e7a" text-anchor="middle">
