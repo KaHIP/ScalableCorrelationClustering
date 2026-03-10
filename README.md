@@ -9,6 +9,7 @@ SCC v1.0
 [![GitHub Issues](https://img.shields.io/github/issues/KaHIP/ScalableCorrelationClustering)](https://github.com/KaHIP/ScalableCorrelationClustering/issues)
 [![Last Commit](https://img.shields.io/github/last-commit/KaHIP/ScalableCorrelationClustering)](https://github.com/KaHIP/ScalableCorrelationClustering/commits)
 [![arXiv](https://img.shields.io/badge/arXiv-2208.13618-b31b1b.svg)](https://arxiv.org/abs/2208.13618)
+[![ALENEX 2025](https://img.shields.io/badge/ALENEX'25-10.1137/1.9781611978339.7-blue)](https://doi.org/10.1137/1.9781611978339.7)
 [![Heidelberg University](https://img.shields.io/badge/Heidelberg-University-c1002a)](https://www.uni-heidelberg.de)
 =====
 
@@ -175,13 +176,13 @@ SCC is free software provided under the MIT License.
 If you publish results using our algorithms, please acknowledge our work by citing our paper:
 
 ```
-@misc{hausberger2024scalablemultilevelmemeticsigned,
-      title={Scalable Multilevel and Memetic Signed Graph Clustering},
-      author={Felix Hausberger and Marcelo Fonseca Faraj and Christian Schulz},
-      year={2024},
-      eprint={2208.13618},
-      archivePrefix={arXiv},
-      primaryClass={cs.DS},
-      url={https://arxiv.org/abs/2208.13618},
+@InProceedings{HausbergerFFS25,
+  author    = {Felix Hausberger and Marcelo Fonseca Faraj and Christian Schulz},
+  title     = {{Scalable Multilevel and Memetic Signed Graph Clustering}},
+  booktitle = {Proceedings of the 27th Symposium on Algorithm Engineering and Experiments (ALENEX 2025)},
+  pages     = {81--94},
+  publisher = {SIAM},
+  year      = {2025},
+  doi       = {10.1137/1.9781611978339.7}
 }
 ```
