@@ -1,7 +1,0 @@
-{
-	"InstallScripts" : 
-	[
-		"/tmp/ScalableCorrelationClustering/build/cmake_install.cmake"
-	],
-	"Parallel" : false
-}
