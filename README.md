@@ -79,16 +79,7 @@ mpirun -n <procs> scc_evolutionary <graph-file> [options]
 | `--seed=<int>` | Random seed for the PRNG | `0` |
 | `--time_limit=<double>` | Time limit in seconds (0 = single run) | `0` |
 | `--output_filename=<string>` | Output file for the clustering | `clustering` |
-| `--input_partition=<string>` | Initial clustering to refine | none |
-| `--global_cycle_iterations=<int>` | Number of V-cycle iterations | `2` |
-| `--label_propagation_iterations=<int>` | Label propagation iterations during coarsening | `10` |
-| `--fm_search_limit=<int>` | Search limit for FM local search | `1` |
-| `--kway_fm_search_limit=<int>` | Search limit for k-way FM refinement | `1` |
-| `--ensemble_clusterings` | Use ensemble of clusterings | disabled |
-| `--suppress_output` | Suppress console output | disabled |
-| `--help` | Print all available options | |
-
-For a full list of parameters, run any executable with `--help`.
+| `--help` | Print help | |
 
 ---
 
