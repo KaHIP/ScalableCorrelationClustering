@@ -85,17 +85,8 @@
   <line x1="810" y1="110" x2="840" y2="110" stroke="#ef5350" stroke-width="2" stroke-dasharray="6,4"/>
   <text x="848" y="114" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#a0a0a0">&#x2212;</text>
 
-  <!-- Multilevel arrow hint at bottom -->
-  <text x="620" y="235" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#546e7a" text-anchor="middle">
+  <!-- Multilevel hint at bottom -->
+  <text x="620" y="248" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#546e7a" text-anchor="middle">
     multilevel coarsening &amp; refinement
   </text>
-  <!-- Small arrow -->
-  <line x1="530" y1="248" x2="555" y2="241" stroke="#546e7a" stroke-width="1"/>
-  <line x1="555" y1="241" x2="570" y2="248" stroke="#546e7a" stroke-width="1"/>
-  <line x1="570" y1="248" x2="590" y2="241" stroke="#546e7a" stroke-width="1"/>
-  <line x1="590" y1="241" x2="610" y2="248" stroke="#546e7a" stroke-width="1"/>
-  <line x1="610" y1="248" x2="640" y2="241" stroke="#546e7a" stroke-width="1"/>
-  <line x1="640" y1="241" x2="670" y2="244" stroke="#546e7a" stroke-width="1"/>
-  <line x1="670" y1="244" x2="700" y2="241" stroke="#546e7a" stroke-width="1"/>
-  <polygon points="700,244 710,241 700,238" fill="#546e7a"/>
 </svg>
