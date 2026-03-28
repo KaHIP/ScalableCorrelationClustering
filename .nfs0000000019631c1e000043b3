@@ -21,4 +21,4 @@ b02db57	1.368664	312.1	discard	Simplify relabeling loop - marginal regression
 ceb9beb	1.351653	310.2	discard	Cache block IDs - marginal regression from max-degree scan overhead
 0089f5b	1.348563	308.2	keep	Cache block IDs in LP for degree<=32 (skip cluster_id lookups in sweeps 2-3)
 859d930	1.330104	297.3	keep	Specialize LP sweep 2: iterate blk_cache only for unconstrained path
-0dcf027	1.316309	295.8	discard	blk_cache in FM compute_gain - overhead hurts on coarse levels
+4ab61f3	1.281641	294.6	keep	Apply blk_cache optimization to LP refinement
