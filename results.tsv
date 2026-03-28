@@ -19,3 +19,4 @@ b02db57	1.368664	312.1	discard	Simplify relabeling loop - marginal regression
 8f1838e	1.344103	310.0	keep	MADV_HUGEPAGE hints for LP arrays
 502ff05	1.395175	311.4	discard	Skip m_local_degrees init - commons recreated per level anyway
 ceb9beb	1.351653	310.2	discard	Cache block IDs - marginal regression from max-degree scan overhead
+0089f5b	1.348563	308.2	keep	Cache block IDs in LP for degree<=32 (skip cluster_id lookups in sweeps 2-3)

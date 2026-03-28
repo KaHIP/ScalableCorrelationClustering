@@ -139,6 +139,8 @@ void size_constraint_label_propagation::label_propagation(const PartitionConfig 
                 cluster_id[node]     = node;
         } endfor
 
+        bool has_constraints = partition_config.graph_already_partitioned || partition_config.combine;
+
         for( int j = 0; j < partition_config.label_iterations; j++) {
                 // First iteration: iterate permutation directly (avoid deque overhead for 2M nodes)
                 // Subsequent iterations: use the queue populated by propagation
@@ -162,16 +164,29 @@ void size_constraint_label_propagation::label_propagation(const PartitionConfig 
 
                         // Sweep 2: find max
                         EdgeWeight max_value = 0;
-                        for(EdgeID e = e_begin; e < e_end; e++) {
-                                NodeID target             = G.getEdgeTarget(e);
-                                PartitionID cur_block     = use_cache ? blk_cache[e - e_begin] : cluster_id[target];
-                                EdgeWeight cur_value      = hash_map[cur_block];
-                                if((cur_value > max_value || (cur_value == max_value && random_obj.nextBool()))
-                                && (!partition_config.graph_already_partitioned  || G.getPartitionIndex(node) == G.getPartitionIndex(target) )
-                                && (!partition_config.combine || G.getSecondPartitionIndex(node) == G.getSecondPartitionIndex(target) ))
-                                {
-                                        max_value = cur_value;
-                                        max_block = cur_block;
+                        if(!has_constraints && use_cache) {
+                                // Fast path: no constraint check, use cached blocks (no edge reads at all)
+                                for(NodeID i = 0; i < deg; i++) {
+                                        PartitionID cur_block = blk_cache[i];
+                                        EdgeWeight cur_value  = hash_map[cur_block];
+                                        if(cur_value > max_value || (cur_value == max_value && random_obj.nextBool()))
+                                        {
+                                                max_value = cur_value;
+                                                max_block = cur_block;
+                                        }
+                                }
+                        } else {
+                                for(EdgeID e = e_begin; e < e_end; e++) {
+                                        NodeID target             = G.getEdgeTarget(e);
+                                        PartitionID cur_block     = use_cache ? blk_cache[e - e_begin] : cluster_id[target];
+                                        EdgeWeight cur_value      = hash_map[cur_block];
+                                        if((cur_value > max_value || (cur_value == max_value && random_obj.nextBool()))
+                                        && (!partition_config.graph_already_partitioned  || G.getPartitionIndex(node) == G.getPartitionIndex(target) )
+                                        && (!partition_config.combine || G.getSecondPartitionIndex(node) == G.getSecondPartitionIndex(target) ))
+                                        {
+                                                max_value = cur_value;
+                                                max_block = cur_block;
+                                        }
                                 }
                         }
 
@@ -218,16 +233,28 @@ void size_constraint_label_propagation::label_propagation(const PartitionConfig 
                                 if(quse_cache) qblk_cache[e - qe_begin] = blk;
                         }
                         EdgeWeight max_value = 0;
-                        for(EdgeID e = qe_begin; e < qe_end; e++) {
-                                NodeID target = G.getEdgeTarget(e);
-                                PartitionID cur_block = quse_cache ? qblk_cache[e - qe_begin] : cluster_id[target];
-                                EdgeWeight cur_value = hash_map[cur_block];
-                                if((cur_value > max_value || (cur_value == max_value && random_obj.nextBool()))
-                                && (!partition_config.graph_already_partitioned  || G.getPartitionIndex(node) == G.getPartitionIndex(target) )
-                                && (!partition_config.combine || G.getSecondPartitionIndex(node) == G.getSecondPartitionIndex(target) ))
-                                {
-                                        max_value = cur_value;
-                                        max_block = cur_block;
+                        if(!has_constraints && quse_cache) {
+                                for(NodeID i = 0; i < qdeg; i++) {
+                                        PartitionID cur_block = qblk_cache[i];
+                                        EdgeWeight cur_value  = hash_map[cur_block];
+                                        if(cur_value > max_value || (cur_value == max_value && random_obj.nextBool()))
+                                        {
+                                                max_value = cur_value;
+                                                max_block = cur_block;
+                                        }
+                                }
+                        } else {
+                                for(EdgeID e = qe_begin; e < qe_end; e++) {
+                                        NodeID target = G.getEdgeTarget(e);
+                                        PartitionID cur_block = quse_cache ? qblk_cache[e - qe_begin] : cluster_id[target];
+                                        EdgeWeight cur_value = hash_map[cur_block];
+                                        if((cur_value > max_value || (cur_value == max_value && random_obj.nextBool()))
+                                        && (!partition_config.graph_already_partitioned  || G.getPartitionIndex(node) == G.getPartitionIndex(target) )
+                                        && (!partition_config.combine || G.getSecondPartitionIndex(node) == G.getSecondPartitionIndex(target) ))
+                                        {
+                                                max_value = cur_value;
+                                                max_block = cur_block;
+                                        }
                                 }
                         }
 
