@@ -50,6 +50,14 @@ class size_constraint_label_propagation {
                 size_constraint_label_propagation();
                 virtual ~size_constraint_label_propagation();
 
+        private:
+                // Persistent buffers reused across calls to avoid repeated allocation
+                std::vector<EdgeWeight> m_hash_map;
+                std::vector<NodeID> m_permutation;
+                std::vector<char> m_qc_a, m_qc_b;
+
+        public:
+
                 void match(const PartitionConfig & config, 
                                 graph_access & G,
                                 CoarseMapping & coarse_mapping, 
