@@ -102,27 +102,30 @@ inline bool kway_graph_refinement_commons::int_ext_degree( graph_access & G,
         ext_degree               = 0;
         bool update_is_difficult = false;
 
-        forall_out_edges(G, e, node) {
-                NodeID target                 = G.getEdgeTarget(e);
+        const Edge* __restrict__ edges = G.edge_array();
+        { EdgeID e_begin = G.get_first_edge(node), e_end = G.get_first_invalid_edge(node);
+        for(EdgeID e = e_begin; e < e_end; e++) {
+                NodeID target                 = edges[e].target;
                 PartitionID targets_partition = G.getPartitionIndex(target);
 
                 if(targets_partition == lhs) {
-                        int_degree += G.getEdgeWeight(e); 
+                        int_degree += edges[e].weight;
                 } else if(targets_partition == rhs) {
-                        ext_degree += G.getEdgeWeight(e);
+                        ext_degree += edges[e].weight;
                 }
 
                 if(targets_partition != lhs && targets_partition != rhs) {
                         update_is_difficult = true;
-                } 
-        } endfor
+                }
+        }
+        }
 
         return update_is_difficult;
 }
 
-inline Gain kway_graph_refinement_commons::compute_gain(graph_access & G, 
-                                                        NodeID & node, 
-                                                        PartitionID & max_gainer, 
+inline Gain kway_graph_refinement_commons::compute_gain(graph_access & G,
+                                                        NodeID & node,
+                                                        PartitionID & max_gainer,
                                                         EdgeWeight & ext_degree) {
 	random_functions::fastRandBool<uint64_t> random_obj;
         //for all incident partitions compute gain
@@ -131,22 +134,27 @@ inline Gain kway_graph_refinement_commons::compute_gain(graph_access & G,
         EdgeWeight max_degree        = std::numeric_limits<EdgeWeight>::min();
         max_gainer                   = INVALID_PARTITION;
 
+        // Hoist edge array pointer for direct access (avoid graphref-> per edge)
+        const Edge* __restrict__ edges = G.edge_array();
+
         m_round++;//can become zero again
-        forall_out_edges(G, e, node) {
-                NodeID target                = G.getEdgeTarget(e);
+        { EdgeID e_begin = G.get_first_edge(node), e_end = G.get_first_invalid_edge(node);
+        for(EdgeID e = e_begin; e < e_end; e++) {
+                NodeID target                = edges[e].target;
                 PartitionID target_partition = G.getPartitionIndex(target);
 
                 if(m_local_degrees[target_partition].round == m_round) {
-                        m_local_degrees[target_partition].local_degree += G.getEdgeWeight(e);
+                        m_local_degrees[target_partition].local_degree += edges[e].weight;
                 } else {
-                        m_local_degrees[target_partition].local_degree = G.getEdgeWeight(e);
+                        m_local_degrees[target_partition].local_degree = edges[e].weight;
                         m_local_degrees[target_partition].round = m_round;
                 }
-        } endfor
+        }
+        }
 
-
-        forall_out_edges(G, e, node) {
-                NodeID target                = G.getEdgeTarget(e);
+        { EdgeID e_begin = G.get_first_edge(node), e_end = G.get_first_invalid_edge(node);
+        for(EdgeID e = e_begin; e < e_end; e++) {
+                NodeID target                = edges[e].target;
                 PartitionID target_partition = G.getPartitionIndex(target);
                 if(m_local_degrees[target_partition].local_degree >= max_degree && target_partition != source_partition) {
                         if(m_local_degrees[target_partition].local_degree > max_degree) {
@@ -161,7 +169,8 @@ inline Gain kway_graph_refinement_commons::compute_gain(graph_access & G,
                                 }
                         }
                 }
-        } endfor
+        }
+        }
 
         if(max_gainer != INVALID_PARTITION) {
                 ext_degree = max_degree;
