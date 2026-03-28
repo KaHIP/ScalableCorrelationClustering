@@ -22,3 +22,5 @@ ceb9beb	1.351653	310.2	discard	Cache block IDs - marginal regression from max-de
 0089f5b	1.348563	308.2	keep	Cache block IDs in LP for degree<=32 (skip cluster_id lookups in sweeps 2-3)
 859d930	1.330104	297.3	keep	Specialize LP sweep 2: iterate blk_cache only for unconstrained path
 0dcf027	1.316309	295.8	discard	blk_cache in FM compute_gain - overhead hurts on coarse levels
+97189b0	1.307162	295.9	keep	Cache partition IDs in LP constrained path
+ec86900	1.258248	287.5	keep	tcmalloc_minimal via LD_PRELOAD
