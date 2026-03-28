@@ -35,7 +35,10 @@ EdgeWeight label_propagation_refinement::perform_refinement(PartitionConfig & pa
         std::vector<char> * Q_contained      = &QC_a;
         std::vector<char> * next_Q_contained = &QC_b;
 
-        // Don't push all nodes into deque for iteration 0 - iterate permutation directly
+        // Hoist raw array pointers for hot loops
+        const Edge* __restrict__ edges = G.edge_array();
+        EdgeWeight* __restrict__ hmap = hash_map.data();
+
         std::vector< PartitionID > max_blocks;
         for( int j = 0; j < partition_config.label_iterations_refinement; j++) {
                 // First iteration: iterate permutation directly
@@ -51,8 +54,8 @@ EdgeWeight label_propagation_refinement::perform_refinement(PartitionConfig & pa
                         bool use_cache = (deg <= 32);
 
                         for(EdgeID e = e_begin; e < e_end; e++) {
-                                PartitionID blk = G.getPartitionIndex(G.getEdgeTarget(e));
-                                hash_map[blk] += G.getEdgeWeight(e);
+                                PartitionID blk = G.getPartitionIndex(edges[e].target);
+                                hmap[blk] += edges[e].weight;
                                 if(use_cache) blk_cache[e - e_begin] = blk;
                         }
 
@@ -64,7 +67,7 @@ EdgeWeight label_propagation_refinement::perform_refinement(PartitionConfig & pa
                         if(use_cache) {
                                 for(NodeID i = 0; i < deg; i++) {
                                         PartitionID cur_block = blk_cache[i];
-                                        EdgeWeight cur_value  = hash_map[cur_block];
+                                        EdgeWeight cur_value  = hmap[cur_block];
                                         if(cur_value > max_value) {
                                                 max_value = cur_value;
                                                 max_block = cur_block;
@@ -76,8 +79,8 @@ EdgeWeight label_propagation_refinement::perform_refinement(PartitionConfig & pa
                                 }
                         } else {
                                 for(EdgeID e = e_begin; e < e_end; e++) {
-                                        PartitionID cur_block = G.getPartitionIndex(G.getEdgeTarget(e));
-                                        EdgeWeight cur_value  = hash_map[cur_block];
+                                        PartitionID cur_block = G.getPartitionIndex(edges[e].target);
+                                        EdgeWeight cur_value  = hmap[cur_block];
                                         if(cur_value > max_value) {
                                                 max_value = cur_value;
                                                 max_block = cur_block;
@@ -91,9 +94,9 @@ EdgeWeight label_propagation_refinement::perform_refinement(PartitionConfig & pa
 
                         // Sweep 3: reset using cached blocks
                         if(use_cache) {
-                                for(NodeID i = 0; i < deg; i++) hash_map[blk_cache[i]] = 0;
+                                for(NodeID i = 0; i < deg; i++) hmap[blk_cache[i]] = 0;
                         } else {
-                                for(EdgeID e = e_begin; e < e_end; e++) hash_map[G.getPartitionIndex(G.getEdgeTarget(e))] = 0;
+                                for(EdgeID e = e_begin; e < e_end; e++) hmap[G.getPartitionIndex(edges[e].target)] = 0;
                         }
                         }
 
@@ -106,7 +109,7 @@ EdgeWeight label_propagation_refinement::perform_refinement(PartitionConfig & pa
 
                         if(changed_label) {
                                 forall_out_edges(G, e, node) {
-                                        NodeID target = G.getEdgeTarget(e);
+                                        NodeID target = edges[e].target;
                                         if(!(*next_Q_contained)[target]) {
                                                 next_Q->push(target);
                                                 (*next_Q_contained)[target] = true;
@@ -128,8 +131,8 @@ EdgeWeight label_propagation_refinement::perform_refinement(PartitionConfig & pa
                         bool quse_cache = (qdeg <= 32);
 
                         for(EdgeID e = qe_begin; e < qe_end; e++) {
-                                PartitionID blk = G.getPartitionIndex(G.getEdgeTarget(e));
-                                hash_map[blk] += G.getEdgeWeight(e);
+                                PartitionID blk = G.getPartitionIndex(edges[e].target);
+                                hmap[blk] += edges[e].weight;
                                 if(quse_cache) qblk_cache[e - qe_begin] = blk;
                         }
                         max_blocks.clear();
@@ -138,23 +141,23 @@ EdgeWeight label_propagation_refinement::perform_refinement(PartitionConfig & pa
                         if(quse_cache) {
                                 for(NodeID i = 0; i < qdeg; i++) {
                                         PartitionID cur_block = qblk_cache[i];
-                                        EdgeWeight cur_value  = hash_map[cur_block];
+                                        EdgeWeight cur_value  = hmap[cur_block];
                                         if(cur_value > max_value) { max_value = cur_value; max_block = cur_block; max_blocks.clear(); }
                                         if(cur_value == max_value) { max_blocks.push_back(cur_block); }
                                 }
                         } else {
                                 for(EdgeID e = qe_begin; e < qe_end; e++) {
-                                        PartitionID cur_block = G.getPartitionIndex(G.getEdgeTarget(e));
-                                        EdgeWeight cur_value  = hash_map[cur_block];
+                                        PartitionID cur_block = G.getPartitionIndex(edges[e].target);
+                                        EdgeWeight cur_value  = hmap[cur_block];
                                         if(cur_value > max_value) { max_value = cur_value; max_block = cur_block; max_blocks.clear(); }
                                         if(cur_value == max_value) { max_blocks.push_back(cur_block); }
                                 }
                         }
 
                         if(quse_cache) {
-                                for(NodeID i = 0; i < qdeg; i++) hash_map[qblk_cache[i]] = 0;
+                                for(NodeID i = 0; i < qdeg; i++) hmap[qblk_cache[i]] = 0;
                         } else {
-                                for(EdgeID e = qe_begin; e < qe_end; e++) hash_map[G.getPartitionIndex(G.getEdgeTarget(e))] = 0;
+                                for(EdgeID e = qe_begin; e < qe_end; e++) hmap[G.getPartitionIndex(edges[e].target)] = 0;
                         }
                         }
 
@@ -165,7 +168,7 @@ EdgeWeight label_propagation_refinement::perform_refinement(PartitionConfig & pa
 
                         if(changed_label) {
                                 forall_out_edges(G, e, node) {
-                                        NodeID target = G.getEdgeTarget(e);
+                                        NodeID target = edges[e].target;
                                         if(!(*next_Q_contained)[target]) {
                                                 next_Q->push(target);
                                                 (*next_Q_contained)[target] = true;

@@ -26,3 +26,4 @@ ceb9beb	1.351653	310.2	discard	Cache block IDs - marginal regression from max-de
 ec86900	1.258248	287.5	keep	tcmalloc_minimal via LD_PRELOAD
 7b5981a	1.266551	288.3	keep	Link tcmalloc_minimal on Linux via CMake
 11135ac	1.268484	286.0	discard	PGO - hurts geo_mean on non-profiled instances
+b73363b	1.288860	286.5	discard	MADV_HUGEPAGE on graph arrays - THP overhead hurts
