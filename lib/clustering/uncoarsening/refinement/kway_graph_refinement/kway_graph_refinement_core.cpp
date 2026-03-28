@@ -61,6 +61,9 @@ EdgeWeight kway_graph_refinement_core::single_kway_refinement_round_internal(Par
         std::vector<NodeID> transpositions;
         std::vector<PartitionID> from_partitions;
         std::vector<PartitionID> to_partitions;
+        transpositions.reserve(step_limit + 1);
+        from_partitions.reserve(step_limit + 1);
+        to_partitions.reserve(step_limit + 1);
 
         int max_number_of_swaps = (int)(G.number_of_nodes());
         int min_cut_index       = -1;

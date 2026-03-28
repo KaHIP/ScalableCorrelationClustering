@@ -34,6 +34,7 @@ EdgeWeight kway_graph_refinement::perform_refinement(PartitionConfig & config, g
                 EdgeWeight improvement = 0;    
 
                 boundary_starting_nodes start_nodes;
+                start_nodes.reserve(G.number_of_nodes());
                 setup_start_nodes(config, G, start_nodes);
 
                 if(start_nodes.size() == 0) return 0; // nothing to refine
