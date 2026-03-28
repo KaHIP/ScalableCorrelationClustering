@@ -6,6 +6,7 @@
  *****************************************************************************/
 
 #include <unordered_map>
+#include <sys/mman.h>
 #include "data_structure/union_find.h"
 #include "node_ordering.h"
 #include "clustering/uncoarsening/refinement/kway_graph_refinement/kway_graph_refinement_commons.h"
@@ -117,6 +118,12 @@ void size_constraint_label_propagation::label_propagation(const PartitionConfig 
         std::vector<EdgeWeight> hash_map(G.number_of_nodes(), 0);
         std::vector<NodeID> permutation(G.number_of_nodes());
         cluster_id.resize(G.number_of_nodes());
+
+        // Hint THP for large random-access arrays to reduce TLB misses
+        if(G.number_of_nodes() > 100000) {
+                madvise(hash_map.data(), hash_map.size() * sizeof(EdgeWeight), MADV_HUGEPAGE);
+                madvise(cluster_id.data(), cluster_id.size() * sizeof(NodeID), MADV_HUGEPAGE);
+        }
 
         std::queue< NodeID > Q_a, Q_b;
         std::queue< NodeID > * Q      = &Q_a;
