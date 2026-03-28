@@ -136,16 +136,15 @@ void size_constraint_label_propagation::label_propagation(const PartitionConfig 
         n_ordering.order_nodes(partition_config, G, permutation);
 
         forall_nodes(G, node) {
-                /* cluster_sizes[node] += G.getNodeWeight(node); */
                 cluster_id[node]     = node;
-                Q->push(permutation[node]);
         } endfor
 
         for( int j = 0; j < partition_config.label_iterations; j++) {
-                while( !Q->empty() ) {
-                        NodeID node = Q->front();
-                        Q->pop();
-                        (*Q_contained)[node] = false;
+                // First iteration: iterate permutation directly (avoid deque overhead for 2M nodes)
+                // Subsequent iterations: use the queue populated by propagation
+                NodeID iter_size = (j == 0) ? G.number_of_nodes() : 0;
+                for( NodeID qi = 0; qi < iter_size; qi++) {
+                        NodeID node = permutation[qi];
 
                         //now move the node to the cluster that is most common in the neighborhood
                         forall_out_edges(G, e, node) {
@@ -182,6 +181,50 @@ void size_constraint_label_propagation::label_propagation(const PartitionConfig 
 
                         /* cluster_sizes[cluster_id[node]]   -= G.getNodeWeight(node); */
                         /* cluster_sizes[max_block]          += G.getNodeWeight(node); */
+                        bool changed_label                = cluster_id[node] != max_block;
+                        cluster_id[node]                  = max_block;
+
+                        if(changed_label) {
+                                forall_out_edges(G, e, node) {
+                                            NodeID target = G.getEdgeTarget(e);
+                                            if(!(*next_Q_contained)[target]) {
+                                                next_Q->push(target);
+                                                (*next_Q_contained)[target] = true;
+                                            }
+                                } endfor
+                        }
+                }
+
+                // Process queue for iterations > 0
+                while( !Q->empty() ) {
+                        NodeID node = Q->front();
+                        Q->pop();
+                        (*Q_contained)[node] = 0;
+
+                        forall_out_edges(G, e, node) {
+                                NodeID target = G.getEdgeTarget(e);
+                                hash_map[cluster_id[target]]+=G.getEdgeWeight(e);
+                        } endfor
+
+                        PartitionID max_block = cluster_id[node];
+                        EdgeWeight max_value = 0;
+                        forall_out_edges(G, e, node) {
+                                NodeID target             = G.getEdgeTarget(e);
+                                PartitionID cur_block     = cluster_id[target];
+                                EdgeWeight cur_value      = hash_map[cur_block];
+                                if((cur_value > max_value || (cur_value == max_value && random_obj.nextBool()))
+                                && (!partition_config.graph_already_partitioned  || G.getPartitionIndex(node) == G.getPartitionIndex(target) )
+                                && (!partition_config.combine || G.getSecondPartitionIndex(node) == G.getSecondPartitionIndex(target) ))
+                                {
+                                        max_value = cur_value;
+                                        max_block = cur_block;
+                                }
+                        } endfor
+
+                        forall_out_edges(G, e, node) {
+                                hash_map[cluster_id[G.getEdgeTarget(e)]] = 0;
+                        } endfor
+
                         bool changed_label                = cluster_id[node] != max_block;
                         cluster_id[node]                  = max_block;
 
