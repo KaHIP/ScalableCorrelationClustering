@@ -143,6 +143,7 @@ void kway_graph_refinement_core::init_queue_with_boundary(const PartitionConfig 
                 Gain gain = commons->compute_gain(G, node, max_gainer, ext_degree);
                 queue->insert(node, gain);
                 moved_idx[node].index = NOT_MOVED;
+                moved_idx.touch(node);
         }
 }
 

@@ -102,10 +102,10 @@ inline bool kway_graph_refinement_core::move_node(PartitionConfig & config,
                 } else {
                         if(targets_max_gainer != INVALID_PARTITION) { // is boundary node? // before signed clustering: ext_degree > 0
                                 if(moved_idx[target].index == NOT_QUEUED) {
-                                //if(moved_idx.find(target) == moved_idx.end()) {
                                         queue->insert(target, gain);
                                         moved_idx[target].index = NOT_MOVED;
-                                } 
+                                        moved_idx.touch(target);
+                                }
                         } 
                 }
         } endfor
