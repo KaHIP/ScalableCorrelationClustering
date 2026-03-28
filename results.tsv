@@ -4,3 +4,4 @@ f683dcc	1.528426	355.2	keep	baseline
 e35d815	1.426707	329.8	keep	Lazy reset for vertex_moved_hashtable
 cf06cce	1.390273	325.0	keep	Direct contraction via counting sort
 21c8fc2	1.362309	311.8	keep	Hoist max_blocks vector outside LP refinement loop
+f72cc86	1.378838	312.2	keep	Stack-allocate LP queues
