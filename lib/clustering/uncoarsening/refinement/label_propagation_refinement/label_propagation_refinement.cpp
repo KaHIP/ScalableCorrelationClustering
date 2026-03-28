@@ -39,6 +39,7 @@ EdgeWeight label_propagation_refinement::perform_refinement(PartitionConfig & pa
         } endfor
 
         //std::cout <<  "partition " <<  partition_config.label_iterations_refinement  << std::endl;
+        std::vector< PartitionID > max_blocks;
         for( int j = 0; j < partition_config.label_iterations_refinement; j++) {
                 while( !Q->empty() ) {
                         NodeID node = Q->front();
@@ -53,7 +54,7 @@ EdgeWeight label_propagation_refinement::perform_refinement(PartitionConfig & pa
 
                         //second sweep for finding max and resetting array
                         PartitionID max_block = G.getPartitionIndex(node);
-                        std::vector< PartitionID > max_blocks;
+                        max_blocks.clear();
                         max_blocks.push_back(max_block);
 
                         /* EdgeWeight max_value = hash_map[max_block]; */

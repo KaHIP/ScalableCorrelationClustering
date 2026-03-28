@@ -2,3 +2,4 @@ commit	metric_value	resource_usage	status	hypothesis
 f683dcc	1.528426	355.2	keep	baseline
 79c85ce	1.425757	329.1	keep	Replace unordered_map with dense vector in remap_cluster_ids and maxNodeHeap
 e35d815	1.426707	329.8	keep	Lazy reset for vertex_moved_hashtable
+cf06cce	1.390273	325.0	keep	Direct contraction via counting sort
