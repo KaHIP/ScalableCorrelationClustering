@@ -222,17 +222,12 @@ void size_constraint_label_propagation::remap_cluster_ids(graph_access & G,
 							  bool apply_to_graph) {
 
         PartitionID cur_no_clusters = 0;
-        std::unordered_map<PartitionID, PartitionID> remap;
-        /* std::vector<PartitionID> remap(G.number_of_nodes(), INVALID_PARTITION); */
+        std::vector<PartitionID> remap(G.number_of_nodes(), INVALID_PARTITION);
         forall_nodes(G, node) {
                 PartitionID cur_cluster = cluster_id[node];
-                //check whether we already had that
-                if( remap.find( cur_cluster ) == remap.end() ) {
+                if( remap[cur_cluster] == INVALID_PARTITION) {
                         remap[cur_cluster] = cur_no_clusters++;
                 }
-                /* if( remap[cur_cluster] == INVALID_PARTITION) { */
-                /*         remap[cur_cluster] = cur_no_clusters++; */
-                /* } */
 
                 cluster_id[node] = remap[cur_cluster];
 		if( apply_to_graph ) {

@@ -7,6 +7,7 @@
 
 #include "label_propagation_refinement.h"
 #include "clustering/coarsening/clustering/node_ordering.h"
+#include "definitions.h"
 #include "tools/random_functions.h"
 
 label_propagation_refinement::label_propagation_refinement() {
@@ -113,11 +114,10 @@ EdgeWeight label_propagation_refinement::perform_refinement(PartitionConfig & pa
 
 void label_propagation_refinement::remap_cluster_ids(PartitionConfig & partition_config, graph_access & G) {
     PartitionID cur_no_clusters = 0;
-    std::unordered_map<PartitionID, PartitionID> remap;
+    std::vector<PartitionID> remap(G.number_of_nodes(), INVALID_PARTITION);
     forall_nodes(G, node) {
             PartitionID cur_cluster = G.getPartitionIndex(node);
-            //check whether we already had that
-            if( remap.find( cur_cluster ) == remap.end() ) {
+            if( remap[cur_cluster] == INVALID_PARTITION ) {
                 remap[cur_cluster] = cur_no_clusters++;
             }
 
