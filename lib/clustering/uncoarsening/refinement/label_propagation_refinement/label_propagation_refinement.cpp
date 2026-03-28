@@ -43,40 +43,59 @@ EdgeWeight label_propagation_refinement::perform_refinement(PartitionConfig & pa
                 for( NodeID qi = 0; qi < iter_size; qi++) {
                         NodeID node = permutation[qi];
 
-                        //now move the node to the cluster that is most common in the neighborhood
-                        forall_out_edges(G, e, node) {
-                                NodeID target = G.getEdgeTarget(e);
-                                hash_map[G.getPartitionIndex(target)]+=G.getEdgeWeight(e);
-                        } endfor
-
-                        //second sweep for finding max and resetting array
                         PartitionID max_block = G.getPartitionIndex(node);
+                        // Sweep 1: accumulate + cache partition IDs
+                        { EdgeID e_begin = G.get_first_edge(node), e_end = G.get_first_invalid_edge(node);
+                        NodeID deg = e_end - e_begin;
+                        PartitionID blk_cache[32];
+                        bool use_cache = (deg <= 32);
+
+                        for(EdgeID e = e_begin; e < e_end; e++) {
+                                PartitionID blk = G.getPartitionIndex(G.getEdgeTarget(e));
+                                hash_map[blk] += G.getEdgeWeight(e);
+                                if(use_cache) blk_cache[e - e_begin] = blk;
+                        }
+
+                        // Sweep 2: find max using cached blocks (no edge reads)
                         max_blocks.clear();
                         max_blocks.push_back(max_block);
-
-                        /* EdgeWeight max_value = hash_map[max_block]; */
                         EdgeWeight max_value = 0;
-                        forall_out_edges(G, e, node) {
-                                NodeID target             = G.getEdgeTarget(e);
-                                PartitionID cur_block     = G.getPartitionIndex(target);
-                                EdgeWeight cur_value      = hash_map[cur_block];
-                                if(cur_value > max_value)
-                                {
-                                        max_value = cur_value;
-                                        max_block = cur_block;
-                                        max_blocks.clear();
-                                }
 
-                                if(cur_value == max_value) {
-                                        max_blocks.push_back(cur_block);
+                        if(use_cache) {
+                                for(NodeID i = 0; i < deg; i++) {
+                                        PartitionID cur_block = blk_cache[i];
+                                        EdgeWeight cur_value  = hash_map[cur_block];
+                                        if(cur_value > max_value) {
+                                                max_value = cur_value;
+                                                max_block = cur_block;
+                                                max_blocks.clear();
+                                        }
+                                        if(cur_value == max_value) {
+                                                max_blocks.push_back(cur_block);
+                                        }
                                 }
-                        } endfor
+                        } else {
+                                for(EdgeID e = e_begin; e < e_end; e++) {
+                                        PartitionID cur_block = G.getPartitionIndex(G.getEdgeTarget(e));
+                                        EdgeWeight cur_value  = hash_map[cur_block];
+                                        if(cur_value > max_value) {
+                                                max_value = cur_value;
+                                                max_block = cur_block;
+                                                max_blocks.clear();
+                                        }
+                                        if(cur_value == max_value) {
+                                                max_blocks.push_back(cur_block);
+                                        }
+                                }
+                        }
 
-                        forall_out_edges(G, e, node) {
-                                NodeID target             = G.getEdgeTarget(e);
-                                PartitionID cur_block     = G.getPartitionIndex(target);
-                                hash_map[cur_block] = 0;
-                        } endfor
+                        // Sweep 3: reset using cached blocks
+                        if(use_cache) {
+                                for(NodeID i = 0; i < deg; i++) hash_map[blk_cache[i]] = 0;
+                        } else {
+                                for(EdgeID e = e_begin; e < e_end; e++) hash_map[G.getPartitionIndex(G.getEdgeTarget(e))] = 0;
+                        }
+                        }
 
                         int pos = random_functions::nextInt(0, max_blocks.size()-1);
                         max_block = max_blocks[pos];
@@ -102,32 +121,42 @@ EdgeWeight label_propagation_refinement::perform_refinement(PartitionConfig & pa
                         Q->pop();
                         (*Q_contained)[node] = 0;
 
-                        forall_out_edges(G, e, node) {
-                                NodeID target = G.getEdgeTarget(e);
-                                hash_map[G.getPartitionIndex(target)]+=G.getEdgeWeight(e);
-                        } endfor
-
                         PartitionID max_block = G.getPartitionIndex(node);
+                        { EdgeID qe_begin = G.get_first_edge(node), qe_end = G.get_first_invalid_edge(node);
+                        NodeID qdeg = qe_end - qe_begin;
+                        PartitionID qblk_cache[32];
+                        bool quse_cache = (qdeg <= 32);
+
+                        for(EdgeID e = qe_begin; e < qe_end; e++) {
+                                PartitionID blk = G.getPartitionIndex(G.getEdgeTarget(e));
+                                hash_map[blk] += G.getEdgeWeight(e);
+                                if(quse_cache) qblk_cache[e - qe_begin] = blk;
+                        }
                         max_blocks.clear();
                         max_blocks.push_back(max_block);
                         EdgeWeight max_value = 0;
-                        forall_out_edges(G, e, node) {
-                                NodeID target             = G.getEdgeTarget(e);
-                                PartitionID cur_block     = G.getPartitionIndex(target);
-                                EdgeWeight cur_value      = hash_map[cur_block];
-                                if(cur_value > max_value) {
-                                        max_value = cur_value;
-                                        max_block = cur_block;
-                                        max_blocks.clear();
+                        if(quse_cache) {
+                                for(NodeID i = 0; i < qdeg; i++) {
+                                        PartitionID cur_block = qblk_cache[i];
+                                        EdgeWeight cur_value  = hash_map[cur_block];
+                                        if(cur_value > max_value) { max_value = cur_value; max_block = cur_block; max_blocks.clear(); }
+                                        if(cur_value == max_value) { max_blocks.push_back(cur_block); }
                                 }
-                                if(cur_value == max_value) {
-                                        max_blocks.push_back(cur_block);
+                        } else {
+                                for(EdgeID e = qe_begin; e < qe_end; e++) {
+                                        PartitionID cur_block = G.getPartitionIndex(G.getEdgeTarget(e));
+                                        EdgeWeight cur_value  = hash_map[cur_block];
+                                        if(cur_value > max_value) { max_value = cur_value; max_block = cur_block; max_blocks.clear(); }
+                                        if(cur_value == max_value) { max_blocks.push_back(cur_block); }
                                 }
-                        } endfor
+                        }
 
-                        forall_out_edges(G, e, node) {
-                                hash_map[G.getPartitionIndex(G.getEdgeTarget(e))] = 0;
-                        } endfor
+                        if(quse_cache) {
+                                for(NodeID i = 0; i < qdeg; i++) hash_map[qblk_cache[i]] = 0;
+                        } else {
+                                for(EdgeID e = qe_begin; e < qe_end; e++) hash_map[G.getPartitionIndex(G.getEdgeTarget(e))] = 0;
+                        }
+                        }
 
                         int pos = random_functions::nextInt(0, max_blocks.size()-1);
                         max_block = max_blocks[pos];
