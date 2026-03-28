@@ -28,10 +28,12 @@ EdgeWeight label_propagation_refinement::perform_refinement(PartitionConfig & pa
         node_ordering n_ordering;
         n_ordering.order_nodes(partition_config, G, permutation);
 
-        std::queue< NodeID > * Q             = new std::queue< NodeID >();
-        std::queue< NodeID > * next_Q        = new std::queue< NodeID >();
-        std::vector<bool> * Q_contained      = new std::vector<bool>(G.number_of_nodes(), false);
-        std::vector<bool> * next_Q_contained = new std::vector<bool> (G.number_of_nodes(), false);
+        std::queue< NodeID > Q_a, Q_b;
+        std::queue< NodeID > * Q      = &Q_a;
+        std::queue< NodeID > * next_Q = &Q_b;
+        std::vector<bool> QC_a(G.number_of_nodes(), false), QC_b(G.number_of_nodes(), false);
+        std::vector<bool> * Q_contained      = &QC_a;
+        std::vector<bool> * next_Q_contained = &QC_b;
 
         forall_nodes(G, node) {
                 //cluster_sizes[G.getPartitionIndex(node)] += G.getNodeWeight(node);
@@ -105,10 +107,7 @@ EdgeWeight label_propagation_refinement::perform_refinement(PartitionConfig & pa
 
         /* remap_cluster_ids(partition_config, G); */
 
-        delete Q;
-        delete next_Q;
-        delete Q_contained;
-        delete next_Q_contained;
+        // Q, next_Q, Q_contained, next_Q_contained are stack-allocated
 
         return 0;
 }

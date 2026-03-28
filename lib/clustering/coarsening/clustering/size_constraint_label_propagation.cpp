@@ -118,10 +118,12 @@ void size_constraint_label_propagation::label_propagation(const PartitionConfig 
         std::vector<NodeID> permutation(G.number_of_nodes());
         cluster_id.resize(G.number_of_nodes());
 
-        std::queue< NodeID > * Q             = new std::queue< NodeID >();
-        std::queue< NodeID > * next_Q        = new std::queue< NodeID >();
-        std::vector<bool> * Q_contained      = new std::vector<bool>(G.number_of_nodes(), false);
-        std::vector<bool> * next_Q_contained = new std::vector<bool> (G.number_of_nodes(), false);
+        std::queue< NodeID > Q_a, Q_b;
+        std::queue< NodeID > * Q      = &Q_a;
+        std::queue< NodeID > * next_Q = &Q_b;
+        std::vector<bool> QC_a(G.number_of_nodes(), false), QC_b(G.number_of_nodes(), false);
+        std::vector<bool> * Q_contained      = &QC_a;
+        std::vector<bool> * next_Q_contained = &QC_b;
 
         node_ordering n_ordering;
         n_ordering.order_nodes(partition_config, G, permutation);
@@ -202,10 +204,7 @@ void size_constraint_label_propagation::label_propagation(const PartitionConfig 
 			  no_of_blocks, 
 			  partition_config.graph_already_partitioned && partition_config.block_cut_edges_only_in_first_level);
 
-        delete Q;
-        delete next_Q;
-        delete Q_contained;
-        delete next_Q_contained;
+        // Q, next_Q, Q_contained, next_Q_contained are stack-allocated
 }
 
 void size_constraint_label_propagation::create_coarsemapping(graph_access & G,
