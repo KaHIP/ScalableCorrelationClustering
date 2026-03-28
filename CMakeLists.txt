@@ -25,7 +25,7 @@ endif()
 
 # --march=nativeflag
 option(NONATIVEOPTIMIZATIONS "Disable --march=native optimizations" OFF)
-add_definitions(-Wno-stringop-overflow -fpermissive -O3 )
+add_definitions(-Wno-stringop-overflow -fpermissive -O3 -fprefetch-loop-arrays -fno-plt )
   #add_definitions(-g -pg  )
 # tweak compiler flags
 CHECK_CXX_COMPILER_FLAG(-funroll-loops COMPILER_SUPPORTS_FUNROLL_LOOPS)

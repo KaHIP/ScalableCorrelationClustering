@@ -142,6 +142,11 @@ void size_constraint_label_propagation::label_propagation(const PartitionConfig 
 
         bool has_constraints = partition_config.graph_already_partitioned || partition_config.combine;
 
+        // Hoist raw array pointers outside loops to avoid graphref-> indirection per edge
+        const Edge* __restrict__ edges = G.edge_array();
+        const NodeID* __restrict__ cid = cluster_id.data();
+        EdgeWeight* __restrict__ hmap = m_hash_map.data();
+
         for( int j = 0; j < partition_config.label_iterations; j++) {
                 // First iteration: iterate permutation directly (avoid deque overhead for 2M nodes)
                 // Subsequent iterations: use the queue populated by propagation
@@ -159,17 +164,17 @@ void size_constraint_label_propagation::label_propagation(const PartitionConfig 
 
                         if(has_constraints && use_cache) {
                                 for(EdgeID e = e_begin; e < e_end; e++) {
-                                        NodeID target = G.getEdgeTarget(e);
-                                        PartitionID blk = cluster_id[target];
-                                        m_hash_map[blk] += G.getEdgeWeight(e);
+                                        NodeID target = edges[e].target;
+                                        PartitionID blk = cid[target];
+                                        hmap[blk] += edges[e].weight;
                                         blk_cache[e - e_begin] = blk;
                                         part_cache[e - e_begin] = G.getPartitionIndex(target);
                                 }
                         } else {
                                 for(EdgeID e = e_begin; e < e_end; e++) {
-                                        NodeID target = G.getEdgeTarget(e);
-                                        PartitionID blk = cluster_id[target];
-                                        m_hash_map[blk] += G.getEdgeWeight(e);
+                                        NodeID target = edges[e].target;
+                                        PartitionID blk = cid[target];
+                                        hmap[blk] += edges[e].weight;
                                         if(use_cache) blk_cache[e - e_begin] = blk;
                                 }
                         }
@@ -181,7 +186,7 @@ void size_constraint_label_propagation::label_propagation(const PartitionConfig 
                                         // Unconstrained: iterate blk_cache only
                                         for(NodeID i = 0; i < deg; i++) {
                                                 PartitionID cur_block = blk_cache[i];
-                                                EdgeWeight cur_value  = m_hash_map[cur_block];
+                                                EdgeWeight cur_value  = hmap[cur_block];
                                                 if(cur_value > max_value || (cur_value == max_value && random_obj.nextBool()))
                                                 { max_value = cur_value; max_block = cur_block; }
                                         }
@@ -190,7 +195,7 @@ void size_constraint_label_propagation::label_propagation(const PartitionConfig 
                                         PartitionID node_part = G.getPartitionIndex(node);
                                         for(NodeID i = 0; i < deg; i++) {
                                                 PartitionID cur_block = blk_cache[i];
-                                                EdgeWeight cur_value  = m_hash_map[cur_block];
+                                                EdgeWeight cur_value  = hmap[cur_block];
                                                 if((cur_value > max_value || (cur_value == max_value && random_obj.nextBool()))
                                                 && node_part == part_cache[i])
                                                 { max_value = cur_value; max_block = cur_block; }
@@ -198,9 +203,9 @@ void size_constraint_label_propagation::label_propagation(const PartitionConfig 
                                 }
                         } else {
                                 for(EdgeID e = e_begin; e < e_end; e++) {
-                                        NodeID target             = G.getEdgeTarget(e);
-                                        PartitionID cur_block     = cluster_id[target];
-                                        EdgeWeight cur_value      = m_hash_map[cur_block];
+                                        NodeID target             = edges[e].target;
+                                        PartitionID cur_block     = cid[target];
+                                        EdgeWeight cur_value      = hmap[cur_block];
                                         if((cur_value > max_value || (cur_value == max_value && random_obj.nextBool()))
                                         && (!partition_config.graph_already_partitioned  || G.getPartitionIndex(node) == G.getPartitionIndex(target) )
                                         && (!partition_config.combine || G.getSecondPartitionIndex(node) == G.getSecondPartitionIndex(target) ))
@@ -210,9 +215,9 @@ void size_constraint_label_propagation::label_propagation(const PartitionConfig 
 
                         // Sweep 3: reset using cached blocks (no cluster_id lookups)
                         if(use_cache) {
-                                for(NodeID i = 0; i < deg; i++) m_hash_map[blk_cache[i]] = 0;
+                                for(NodeID i = 0; i < deg; i++) hmap[blk_cache[i]] = 0;
                         } else {
-                                for(EdgeID e = e_begin; e < e_end; e++) m_hash_map[cluster_id[G.getEdgeTarget(e)]] = 0;
+                                for(EdgeID e = e_begin; e < e_end; e++) hmap[cluster_id[edges[e].target]] = 0;
                         }
                         }
 
@@ -223,7 +228,7 @@ void size_constraint_label_propagation::label_propagation(const PartitionConfig 
 
                         if(changed_label) {
                                 forall_out_edges(G, e, node) {
-                                            NodeID target = G.getEdgeTarget(e);
+                                            NodeID target = edges[e].target;
                                             if(!(*next_Q_contained)[target]) {
                                                 next_Q->push(target);
                                                 (*next_Q_contained)[target] = true;
@@ -247,17 +252,17 @@ void size_constraint_label_propagation::label_propagation(const PartitionConfig 
 
                         if(has_constraints && quse_cache) {
                                 for(EdgeID e = qe_begin; e < qe_end; e++) {
-                                        NodeID target = G.getEdgeTarget(e);
-                                        PartitionID blk = cluster_id[target];
-                                        m_hash_map[blk] += G.getEdgeWeight(e);
+                                        NodeID target = edges[e].target;
+                                        PartitionID blk = cid[target];
+                                        hmap[blk] += edges[e].weight;
                                         qblk_cache[e - qe_begin] = blk;
                                         qpart_cache[e - qe_begin] = G.getPartitionIndex(target);
                                 }
                         } else {
                                 for(EdgeID e = qe_begin; e < qe_end; e++) {
-                                        NodeID target = G.getEdgeTarget(e);
-                                        PartitionID blk = cluster_id[target];
-                                        m_hash_map[blk] += G.getEdgeWeight(e);
+                                        NodeID target = edges[e].target;
+                                        PartitionID blk = cid[target];
+                                        hmap[blk] += edges[e].weight;
                                         if(quse_cache) qblk_cache[e - qe_begin] = blk;
                                 }
                         }
@@ -267,7 +272,7 @@ void size_constraint_label_propagation::label_propagation(const PartitionConfig 
                                 if(!has_constraints) {
                                         for(NodeID i = 0; i < qdeg; i++) {
                                                 PartitionID cur_block = qblk_cache[i];
-                                                EdgeWeight cur_value  = m_hash_map[cur_block];
+                                                EdgeWeight cur_value  = hmap[cur_block];
                                                 if(cur_value > max_value || (cur_value == max_value && random_obj.nextBool()))
                                                 { max_value = cur_value; max_block = cur_block; }
                                         }
@@ -275,7 +280,7 @@ void size_constraint_label_propagation::label_propagation(const PartitionConfig 
                                         PartitionID node_part = G.getPartitionIndex(node);
                                         for(NodeID i = 0; i < qdeg; i++) {
                                                 PartitionID cur_block = qblk_cache[i];
-                                                EdgeWeight cur_value  = m_hash_map[cur_block];
+                                                EdgeWeight cur_value  = hmap[cur_block];
                                                 if((cur_value > max_value || (cur_value == max_value && random_obj.nextBool()))
                                                 && node_part == qpart_cache[i])
                                                 { max_value = cur_value; max_block = cur_block; }
@@ -283,9 +288,9 @@ void size_constraint_label_propagation::label_propagation(const PartitionConfig 
                                 }
                         } else {
                                 for(EdgeID e = qe_begin; e < qe_end; e++) {
-                                        NodeID target = G.getEdgeTarget(e);
-                                        PartitionID cur_block = cluster_id[target];
-                                        EdgeWeight cur_value = m_hash_map[cur_block];
+                                        NodeID target = edges[e].target;
+                                        PartitionID cur_block = cid[target];
+                                        EdgeWeight cur_value = hmap[cur_block];
                                         if((cur_value > max_value || (cur_value == max_value && random_obj.nextBool()))
                                         && (!partition_config.graph_already_partitioned  || G.getPartitionIndex(node) == G.getPartitionIndex(target) )
                                         && (!partition_config.combine || G.getSecondPartitionIndex(node) == G.getSecondPartitionIndex(target) ))
@@ -294,9 +299,9 @@ void size_constraint_label_propagation::label_propagation(const PartitionConfig 
                         }
 
                         if(quse_cache) {
-                                for(NodeID i = 0; i < qdeg; i++) m_hash_map[qblk_cache[i]] = 0;
+                                for(NodeID i = 0; i < qdeg; i++) hmap[qblk_cache[i]] = 0;
                         } else {
-                                for(EdgeID e = qe_begin; e < qe_end; e++) m_hash_map[cluster_id[G.getEdgeTarget(e)]] = 0;
+                                for(EdgeID e = qe_begin; e < qe_end; e++) hmap[cluster_id[edges[e].target]] = 0;
                         }
                         }
 
@@ -305,7 +310,7 @@ void size_constraint_label_propagation::label_propagation(const PartitionConfig 
 
                         if(changed_label) {
                                 forall_out_edges(G, e, node) {
-                                            NodeID target = G.getEdgeTarget(e);
+                                            NodeID target = edges[e].target;
                                             if(!(*next_Q_contained)[target]) {
                                                 next_Q->push(target);
                                                 (*next_Q_contained)[target] = true;

@@ -25,3 +25,4 @@ ceb9beb	1.351653	310.2	discard	Cache block IDs - marginal regression from max-de
 97189b0	1.307162	295.9	keep	Cache partition IDs in LP constrained path
 ec86900	1.258248	287.5	keep	tcmalloc_minimal via LD_PRELOAD
 7b5981a	1.266551	288.3	keep	Link tcmalloc_minimal on Linux via CMake
+11135ac	1.268484	286.0	discard	PGO - hurts geo_mean on non-profiled instances
