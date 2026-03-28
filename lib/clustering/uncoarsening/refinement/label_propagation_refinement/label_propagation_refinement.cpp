@@ -22,29 +22,31 @@ EdgeWeight label_propagation_refinement::perform_refinement(PartitionConfig & pa
 	//random_functions::fastRandBool<uint64_t> random_obj;
         // coarse_mapping stores cluster id and the mapping (it is identical)
         //std::vector<NodeWeight> cluster_sizes(G.number_of_nodes(), 0);
-        std::vector<EdgeWeight> hash_map(G.number_of_nodes(), 0);
-        std::vector<NodeID> permutation(G.number_of_nodes());
+        NodeID N = G.number_of_nodes();
+        m_hash_map.assign(N, 0);
+        m_permutation.resize(N);
 
         node_ordering n_ordering;
-        n_ordering.order_nodes(partition_config, G, permutation);
+        n_ordering.order_nodes(partition_config, G, m_permutation);
 
         std::queue< NodeID > Q_a, Q_b;
         std::queue< NodeID > * Q      = &Q_a;
         std::queue< NodeID > * next_Q = &Q_b;
-        std::vector<char> QC_a(G.number_of_nodes(), 0), QC_b(G.number_of_nodes(), 0);
-        std::vector<char> * Q_contained      = &QC_a;
-        std::vector<char> * next_Q_contained = &QC_b;
+        m_qc_a.assign(N, 0);
+        m_qc_b.assign(N, 0);
+        std::vector<char> * Q_contained      = &m_qc_a;
+        std::vector<char> * next_Q_contained = &m_qc_b;
 
         // Hoist raw array pointers for hot loops
         const Edge* __restrict__ edges = G.edge_array();
-        EdgeWeight* __restrict__ hmap = hash_map.data();
+        EdgeWeight* __restrict__ hmap = m_hash_map.data();
 
         std::vector< PartitionID > max_blocks;
         for( int j = 0; j < partition_config.label_iterations_refinement; j++) {
                 // First iteration: iterate permutation directly
                 NodeID iter_size = (j == 0) ? G.number_of_nodes() : 0;
                 for( NodeID qi = 0; qi < iter_size; qi++) {
-                        NodeID node = permutation[qi];
+                        NodeID node = m_permutation[qi];
 
                         PartitionID max_block = G.getPartitionIndex(node);
                         // Sweep 1: accumulate + cache partition IDs
