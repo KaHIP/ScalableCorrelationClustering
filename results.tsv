@@ -17,3 +17,4 @@ aab4041	1.382211	310.7	discard	vector<char> in contraction - no improvement
 d166e01	1.355954	310.4	discard	Eliminate PartitionConfig copy - within noise
 b02db57	1.368664	312.1	discard	Simplify relabeling loop - marginal regression
 8f1838e	1.344103	310.0	keep	MADV_HUGEPAGE hints for LP arrays
+502ff05	1.395175	311.4	discard	Skip m_local_degrees init - commons recreated per level anyway

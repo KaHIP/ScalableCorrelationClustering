@@ -35,18 +35,13 @@ EdgeWeight label_propagation_refinement::perform_refinement(PartitionConfig & pa
         std::vector<char> * Q_contained      = &QC_a;
         std::vector<char> * next_Q_contained = &QC_b;
 
-        forall_nodes(G, node) {
-                //cluster_sizes[G.getPartitionIndex(node)] += G.getNodeWeight(node);
-                Q->push(permutation[node]);
-        } endfor
-
-        //std::cout <<  "partition " <<  partition_config.label_iterations_refinement  << std::endl;
+        // Don't push all nodes into deque for iteration 0 - iterate permutation directly
         std::vector< PartitionID > max_blocks;
         for( int j = 0; j < partition_config.label_iterations_refinement; j++) {
-                while( !Q->empty() ) {
-                        NodeID node = Q->front();
-                        Q->pop();
-                        (*Q_contained)[node] = false;
+                // First iteration: iterate permutation directly
+                NodeID iter_size = (j == 0) ? G.number_of_nodes() : 0;
+                for( NodeID qi = 0; qi < iter_size; qi++) {
+                        NodeID node = permutation[qi];
 
                         //now move the node to the cluster that is most common in the neighborhood
                         forall_out_edges(G, e, node) {
@@ -99,7 +94,56 @@ EdgeWeight label_propagation_refinement::perform_refinement(PartitionConfig & pa
                                         } 
                                 } endfor
                         }
-                } 
+                }
+
+                // Process queue for iterations > 0
+                while( !Q->empty() ) {
+                        NodeID node = Q->front();
+                        Q->pop();
+                        (*Q_contained)[node] = 0;
+
+                        forall_out_edges(G, e, node) {
+                                NodeID target = G.getEdgeTarget(e);
+                                hash_map[G.getPartitionIndex(target)]+=G.getEdgeWeight(e);
+                        } endfor
+
+                        PartitionID max_block = G.getPartitionIndex(node);
+                        max_blocks.clear();
+                        max_blocks.push_back(max_block);
+                        EdgeWeight max_value = 0;
+                        forall_out_edges(G, e, node) {
+                                NodeID target             = G.getEdgeTarget(e);
+                                PartitionID cur_block     = G.getPartitionIndex(target);
+                                EdgeWeight cur_value      = hash_map[cur_block];
+                                if(cur_value > max_value) {
+                                        max_value = cur_value;
+                                        max_block = cur_block;
+                                        max_blocks.clear();
+                                }
+                                if(cur_value == max_value) {
+                                        max_blocks.push_back(cur_block);
+                                }
+                        } endfor
+
+                        forall_out_edges(G, e, node) {
+                                hash_map[G.getPartitionIndex(G.getEdgeTarget(e))] = 0;
+                        } endfor
+
+                        int pos = random_functions::nextInt(0, max_blocks.size()-1);
+                        max_block = max_blocks[pos];
+                        bool changed_label = G.getPartitionIndex(node) != max_block;
+                        G.setPartitionIndex(node, max_block);
+
+                        if(changed_label) {
+                                forall_out_edges(G, e, node) {
+                                        NodeID target = G.getEdgeTarget(e);
+                                        if(!(*next_Q_contained)[target]) {
+                                                next_Q->push(target);
+                                                (*next_Q_contained)[target] = true;
+                                        }
+                                } endfor
+                        }
+                }
 
                 std::swap( Q, next_Q);
                 std::swap( Q_contained, next_Q_contained);
