@@ -146,23 +146,26 @@ void size_constraint_label_propagation::label_propagation(const PartitionConfig 
                 for( NodeID qi = 0; qi < iter_size; qi++) {
                         NodeID node = permutation[qi];
 
-                        //now move the node to the cluster that is most common in the neighborhood
-                        forall_out_edges(G, e, node) {
-                                NodeID target = G.getEdgeTarget(e);
-                                hash_map[cluster_id[target]]+=G.getEdgeWeight(e);
-				/* if (G.getEdgeWeight(e) < 0) blocked[cluster_id[target]] = true; */
-                        } endfor
-
-                        //second sweep for finding max and resetting array
                         PartitionID max_block = cluster_id[node];
+                        // Sweep 1: accumulate + cache block IDs for sweep 3
+                        { EdgeID e_begin = G.get_first_edge(node), e_end = G.get_first_invalid_edge(node);
+                        NodeID deg = e_end - e_begin;
+                        PartitionID blk_cache[32];
+                        bool use_cache = (deg <= 32);
 
-                        /* EdgeWeight max_value = hash_map[max_block]; */
+                        for(EdgeID e = e_begin; e < e_end; e++) {
+                                NodeID target = G.getEdgeTarget(e);
+                                PartitionID blk = cluster_id[target];
+                                hash_map[blk] += G.getEdgeWeight(e);
+                                if(use_cache) blk_cache[e - e_begin] = blk;
+                        }
+
+                        // Sweep 2: find max
                         EdgeWeight max_value = 0;
-                        forall_out_edges(G, e, node) {
+                        for(EdgeID e = e_begin; e < e_end; e++) {
                                 NodeID target             = G.getEdgeTarget(e);
-                                PartitionID cur_block     = cluster_id[target];
+                                PartitionID cur_block     = use_cache ? blk_cache[e - e_begin] : cluster_id[target];
                                 EdgeWeight cur_value      = hash_map[cur_block];
-				/* if (blocked[cur_block]) continue; */
                                 if((cur_value > max_value || (cur_value == max_value && random_obj.nextBool()))
                                 && (!partition_config.graph_already_partitioned  || G.getPartitionIndex(node) == G.getPartitionIndex(target) )
                                 && (!partition_config.combine || G.getSecondPartitionIndex(node) == G.getSecondPartitionIndex(target) ))
@@ -170,14 +173,15 @@ void size_constraint_label_propagation::label_propagation(const PartitionConfig 
                                         max_value = cur_value;
                                         max_block = cur_block;
                                 }
-                        } endfor
+                        }
 
-                        forall_out_edges(G, e, node) {
-                                NodeID target             = G.getEdgeTarget(e);
-                                PartitionID cur_block     = cluster_id[target];
-                                hash_map[cur_block] = 0;
-				/* blocked[cur_block] = false; */
-                        } endfor
+                        // Sweep 3: reset using cached blocks (no cluster_id lookups)
+                        if(use_cache) {
+                                for(NodeID i = 0; i < deg; i++) hash_map[blk_cache[i]] = 0;
+                        } else {
+                                for(EdgeID e = e_begin; e < e_end; e++) hash_map[cluster_id[G.getEdgeTarget(e)]] = 0;
+                        }
+                        }
 
                         /* cluster_sizes[cluster_id[node]]   -= G.getNodeWeight(node); */
                         /* cluster_sizes[max_block]          += G.getNodeWeight(node); */
@@ -201,17 +205,23 @@ void size_constraint_label_propagation::label_propagation(const PartitionConfig 
                         Q->pop();
                         (*Q_contained)[node] = 0;
 
-                        forall_out_edges(G, e, node) {
-                                NodeID target = G.getEdgeTarget(e);
-                                hash_map[cluster_id[target]]+=G.getEdgeWeight(e);
-                        } endfor
-
                         PartitionID max_block = cluster_id[node];
+                        { EdgeID qe_begin = G.get_first_edge(node), qe_end = G.get_first_invalid_edge(node);
+                        NodeID qdeg = qe_end - qe_begin;
+                        PartitionID qblk_cache[32];
+                        bool quse_cache = (qdeg <= 32);
+
+                        for(EdgeID e = qe_begin; e < qe_end; e++) {
+                                NodeID target = G.getEdgeTarget(e);
+                                PartitionID blk = cluster_id[target];
+                                hash_map[blk] += G.getEdgeWeight(e);
+                                if(quse_cache) qblk_cache[e - qe_begin] = blk;
+                        }
                         EdgeWeight max_value = 0;
-                        forall_out_edges(G, e, node) {
-                                NodeID target             = G.getEdgeTarget(e);
-                                PartitionID cur_block     = cluster_id[target];
-                                EdgeWeight cur_value      = hash_map[cur_block];
+                        for(EdgeID e = qe_begin; e < qe_end; e++) {
+                                NodeID target = G.getEdgeTarget(e);
+                                PartitionID cur_block = quse_cache ? qblk_cache[e - qe_begin] : cluster_id[target];
+                                EdgeWeight cur_value = hash_map[cur_block];
                                 if((cur_value > max_value || (cur_value == max_value && random_obj.nextBool()))
                                 && (!partition_config.graph_already_partitioned  || G.getPartitionIndex(node) == G.getPartitionIndex(target) )
                                 && (!partition_config.combine || G.getSecondPartitionIndex(node) == G.getSecondPartitionIndex(target) ))
@@ -219,11 +229,14 @@ void size_constraint_label_propagation::label_propagation(const PartitionConfig 
                                         max_value = cur_value;
                                         max_block = cur_block;
                                 }
-                        } endfor
+                        }
 
-                        forall_out_edges(G, e, node) {
-                                hash_map[cluster_id[G.getEdgeTarget(e)]] = 0;
-                        } endfor
+                        if(quse_cache) {
+                                for(NodeID i = 0; i < qdeg; i++) hash_map[qblk_cache[i]] = 0;
+                        } else {
+                                for(EdgeID e = qe_begin; e < qe_end; e++) hash_map[cluster_id[G.getEdgeTarget(e)]] = 0;
+                        }
+                        }
 
                         bool changed_label                = cluster_id[node] != max_block;
                         cluster_id[node]                  = max_block;
