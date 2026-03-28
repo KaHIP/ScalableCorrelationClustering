@@ -6,3 +6,4 @@ cf06cce	1.390273	325.0	keep	Direct contraction via counting sort
 21c8fc2	1.362309	311.8	keep	Hoist max_blocks vector outside LP refinement loop
 f72cc86	1.378838	312.2	keep	Stack-allocate LP queues
 cc13299	1.365929	311.9	keep	Stack-allocate coarsening objects
+41e405d	1.380052	312.8	discard	Software prefetching - overhead exceeds benefit

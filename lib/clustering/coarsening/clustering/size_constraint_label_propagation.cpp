@@ -121,9 +121,9 @@ void size_constraint_label_propagation::label_propagation(const PartitionConfig 
         std::queue< NodeID > Q_a, Q_b;
         std::queue< NodeID > * Q      = &Q_a;
         std::queue< NodeID > * next_Q = &Q_b;
-        std::vector<bool> QC_a(G.number_of_nodes(), false), QC_b(G.number_of_nodes(), false);
-        std::vector<bool> * Q_contained      = &QC_a;
-        std::vector<bool> * next_Q_contained = &QC_b;
+        std::vector<char> QC_a(G.number_of_nodes(), 0), QC_b(G.number_of_nodes(), 0);
+        std::vector<char> * Q_contained      = &QC_a;
+        std::vector<char> * next_Q_contained = &QC_b;
 
         node_ordering n_ordering;
         n_ordering.order_nodes(partition_config, G, permutation);
