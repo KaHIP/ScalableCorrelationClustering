@@ -119,11 +119,13 @@ void size_constraint_label_propagation::label_propagation(const PartitionConfig 
         m_permutation.resize(N);
         cluster_id.resize(N);
 
-        // Hint THP for large random-access arrays to reduce TLB misses
+        // Hint THP for large random-access arrays to reduce TLB misses (Linux only)
+#ifdef MADV_HUGEPAGE
         if(N > 100000) {
                 madvise(m_hash_map.data(), N * sizeof(EdgeWeight), MADV_HUGEPAGE);
                 madvise(cluster_id.data(), N * sizeof(NodeID), MADV_HUGEPAGE);
         }
+#endif
 
         std::queue< NodeID > Q_a, Q_b;
         std::queue< NodeID > * Q      = &Q_a;
