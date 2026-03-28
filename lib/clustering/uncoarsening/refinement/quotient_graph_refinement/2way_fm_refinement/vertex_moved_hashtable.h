@@ -51,10 +51,14 @@ class vertex_moved_hashtable {
                 virtual ~vertex_moved_hashtable() {};       
 
                 void reset() {
-                        for( unsigned i = 0; i < elements.size(); i++) {
-                                //elements
-                                elements[i].index = NOT_QUEUED;
+                        for( unsigned i = 0; i < to_reset.size(); i++) {
+                                elements[to_reset[i]].index = NOT_QUEUED;
                         }
+                        to_reset.clear();
+                } ;
+
+                void touch(unsigned index) {
+                        to_reset.push_back(index);
                 } ;
 
                 moved_index& operator[](int index) {

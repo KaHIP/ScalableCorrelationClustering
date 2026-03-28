@@ -25,9 +25,10 @@ EdgeWeight refinement::perform_refinement(PartitionConfig & config, graph_access
     //quality_metrics qm;
     EdgeWeight overall_improvement = 0;
     //complete_boundary* boundary;
-    label_propagation_refinement* label_propagation = new label_propagation_refinement();
-    //quotient_graph_refinement* fm_local_search      = new quotient_graph_refinement();
-    kway_graph_refinement* kway                     = new kway_graph_refinement();
+    label_propagation_refinement label_propagation_obj;
+    kway_graph_refinement kway_obj;
+    label_propagation_refinement* label_propagation = &label_propagation_obj;
+    kway_graph_refinement* kway                     = &kway_obj;
     //multitry_kway_fm* multitry_kway                 = new multitry_kway_fm();
     config.k = G->number_of_nodes();
     G->set_partition_count(config.k);
@@ -153,9 +154,5 @@ EdgeWeight refinement::perform_refinement(PartitionConfig & config, graph_access
 
 
 
-    delete label_propagation;
-    //delete fm_local_search;
-    delete kway;
-    //delete multitry_kway;
     return overall_improvement;
 }

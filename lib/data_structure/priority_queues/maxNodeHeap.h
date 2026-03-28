@@ -85,7 +85,7 @@ class maxNodeHeap : public priority_queue_interface {
 
         private:
                 std::vector< PQElement >               m_elements;      // elements that contain the data
-                std::unordered_map<NodeID, int>   m_element_index; // stores index of the node in the m_elements array
+                std::vector<int>                       m_element_index; // direct-indexed: node -> index in m_elements (-1 = absent)
                 std::vector< std::pair<Key, int> >     m_heap;          // key and index in elements (pointer)
 
                 void siftUp( int pos );
@@ -177,7 +177,8 @@ inline bool maxNodeHeap::empty( ) {
 }
 
 inline void maxNodeHeap::insert(NodeID node, Gain gain) {
-        if( m_element_index.find(node) == m_element_index.end() ) {
+        if(node >= m_element_index.size()) m_element_index.resize(node + 1, -1);
+        if( m_element_index[node] == -1 ) {
                 int element_index =  m_elements.size();
                 int heap_size     =  m_heap.size();
 
@@ -192,7 +193,7 @@ inline void maxNodeHeap::deleteNode(NodeID node) {
         int element_index = m_element_index[node];
         int heap_index    = m_elements[element_index].get_index();
 
-        m_element_index.erase(node);
+        m_element_index[node] = -1;
 
         std::swap( m_heap[heap_index], m_heap[m_heap.size() - 1]);
         //update the position of its element in the element array
@@ -220,7 +221,7 @@ inline NodeID maxNodeHeap::deleteMax() {
         if( m_heap.size() > 0) {
                 int element_index = m_heap[0].second;
                 int node = m_elements[element_index].get_data().node;
-                m_element_index.erase(node);
+                m_element_index[node] = -1;
 
                 m_heap[0] = m_heap[m_heap.size() - 1];
                 //update the position of its element in the element array
@@ -258,7 +259,7 @@ inline void maxNodeHeap::changeKey(NodeID node, Gain gain) {
 };
 
 inline void maxNodeHeap::decreaseKey(NodeID node, Gain gain) {
-        ASSERT_TRUE(m_element_index.find(node) != m_element_index.end());
+        ASSERT_TRUE(node < m_element_index.size() && m_element_index[node] != -1);
         int queue_idx = m_element_index[node];
         int heap_idx  = m_elements[queue_idx].get_index();
         m_elements[queue_idx].set_key(gain);
@@ -267,7 +268,7 @@ inline void maxNodeHeap::decreaseKey(NodeID node, Gain gain) {
 }
 
 inline void maxNodeHeap::increaseKey(NodeID node, Gain gain) {
-        ASSERT_TRUE(m_element_index.find(node) != m_element_index.end());
+        ASSERT_TRUE(node < m_element_index.size() && m_element_index[node] != -1);
         int queue_idx = m_element_index[node];
         int heap_idx  = m_elements[queue_idx].get_index();
         m_elements[queue_idx].set_key(gain);
@@ -281,7 +282,7 @@ inline Gain maxNodeHeap::getKey(NodeID node) {
 
 
 inline bool maxNodeHeap::contains(NodeID node) {
-       return m_element_index.find(node) != m_element_index.end();
+       return node < m_element_index.size() && m_element_index[node] != -1;
 }
 
 #endif

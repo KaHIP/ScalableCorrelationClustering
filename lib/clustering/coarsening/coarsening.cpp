@@ -25,9 +25,9 @@ coarsening::~coarsening() {
 void coarsening::perform_coarsening(const PartitionConfig & partition_config, graph_access & G, graph_hierarchy & hierarchy) {
         // Variables
         PartitionConfig copy_of_partition_config = partition_config;
-        size_constraint_label_propagation* sclp = NULL;
-        contraction* contracter = new contraction();
-        simple_clustering_stop_rule* coarsening_stop_rule = new simple_clustering_stop_rule(copy_of_partition_config, G.number_of_nodes());
+        size_constraint_label_propagation sclp;
+        contraction contracter;
+        simple_clustering_stop_rule coarsening_stop_rule(copy_of_partition_config, G.number_of_nodes());
 
         graph_access* finer = &G;
         NodeID no_of_coarser_vertices;
@@ -40,12 +40,10 @@ void coarsening::perform_coarsening(const PartitionConfig & partition_config, gr
 	do {
 		coarser          = new graph_access();
 		coarse_mapping	 = new CoarseMapping();
-		sclp = new size_constraint_label_propagation();
-		sclp->match(copy_of_partition_config, *finer, *coarse_mapping, no_of_coarser_vertices, labels_changed);
-		delete sclp;
-		contracter->contract_clustering(copy_of_partition_config, *finer, *coarser, *coarse_mapping, no_of_coarser_vertices);
+		sclp.match(copy_of_partition_config, *finer, *coarse_mapping, no_of_coarser_vertices, labels_changed);
+		contracter.contract_clustering(copy_of_partition_config, *finer, *coarser, *coarse_mapping, no_of_coarser_vertices);
                 hierarchy.push_back(finer, coarse_mapping);
-                contraction_stop = coarsening_stop_rule->stop(finer->number_of_nodes(), no_of_coarser_vertices, labels_changed);
+                contraction_stop = coarsening_stop_rule.stop(finer->number_of_nodes(), no_of_coarser_vertices, labels_changed);
 
                 finer = coarser;
 	} while(contraction_stop);
@@ -71,6 +69,5 @@ void coarsening::perform_coarsening(const PartitionConfig & partition_config, gr
 		finer->set_partition_count(finer->number_of_nodes());
 	}
 
-        delete contracter;
-        delete coarsening_stop_rule;
+        // contracter and coarsening_stop_rule are stack-allocated
 }

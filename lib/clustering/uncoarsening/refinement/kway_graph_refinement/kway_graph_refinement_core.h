@@ -87,8 +87,10 @@ inline bool kway_graph_refinement_core::move_node(PartitionConfig & config,
         G.setPartitionIndex(node, to);        
 
         //update gain of neighbors / the boundaries have already been updated
-        forall_out_edges(G, e, node) {
-                NodeID target = G.getEdgeTarget(e);
+        const Edge* __restrict__ edges = G.edge_array();
+        { EdgeID e_begin = G.get_first_edge(node), e_end = G.get_first_invalid_edge(node);
+        for(EdgeID e = e_begin; e < e_end; e++) {
+                NodeID target = edges[e].target;
                 PartitionID targets_max_gainer;
                 EdgeWeight ext_degree; // the local external degree
                 Gain gain = commons->compute_gain(G, target, targets_max_gainer, ext_degree);
@@ -102,13 +104,14 @@ inline bool kway_graph_refinement_core::move_node(PartitionConfig & config,
                 } else {
                         if(targets_max_gainer != INVALID_PARTITION) { // is boundary node? // before signed clustering: ext_degree > 0
                                 if(moved_idx[target].index == NOT_QUEUED) {
-                                //if(moved_idx.find(target) == moved_idx.end()) {
                                         queue->insert(target, gain);
                                         moved_idx[target].index = NOT_MOVED;
-                                } 
+                                        moved_idx.touch(target);
+                                }
                         } 
                 }
-        } endfor
+        }
+        }
 
         return true;
 }

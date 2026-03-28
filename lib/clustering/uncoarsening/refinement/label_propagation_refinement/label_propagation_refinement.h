@@ -19,6 +19,12 @@ public:
 
         EdgeWeight perform_refinement(PartitionConfig & config, graph_access & G);
         void remap_cluster_ids(PartitionConfig & partition_config, graph_access & G);
+
+private:
+        // Persistent buffers reused across calls
+        std::vector<EdgeWeight> m_hash_map;
+        std::vector<NodeID> m_permutation;
+        std::vector<char> m_qc_a, m_qc_b;
 };
 
 

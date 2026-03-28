@@ -232,6 +232,11 @@ class graph_access {
                 //Count get_node_queue_index(NodeID node);
 
                 void copy(graph_access & Gcopy);
+
+                // Direct array access for hot loops (avoids graphref-> indirection per edge)
+                inline const Edge* edge_array() const { return graphref->m_edges.data(); }
+                inline const Node* node_array() const { return graphref->m_nodes.data(); }
+
         private:
                 basicGraph * graphref;     
                 bool         m_max_degree_computed;
