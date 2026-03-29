@@ -1,6 +1,6 @@
 SCC v1.2
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![C++](https://img.shields.io/badge/C++-11-blue.svg)](https://isocpp.org/)
+[![C++](https://img.shields.io/badge/C++-17-blue.svg)](https://isocpp.org/)
 [![CMake](https://img.shields.io/badge/CMake-3.10+-064F8C.svg)](https://cmake.org/)
 [![GitHub Release](https://img.shields.io/github/v/release/KaHIP/ScalableCorrelationClustering)](https://github.com/KaHIP/ScalableCorrelationClustering/releases/latest)
 [![Linux](https://img.shields.io/badge/Linux-supported-success.svg)](https://github.com/KaHIP/ScalableCorrelationClustering)
@@ -25,7 +25,7 @@ SCC v1.2
 | **Objective** | Minimize the sum of positive inter-cluster edges and negative intra-cluster edges |
 | **Algorithms** | Multilevel approach with label propagation and local search; distributed memetic algorithm combining evolutionary search with multilevel refinement |
 | **Interfaces** | CLI |
-| **Requires** | C++11 compiler, CMake 3.10+, MPI (e.g. OpenMPI) |
+| **Requires** | C++17 compiler, CMake 3.10+, MPI (e.g. OpenMPI) |
 
 ## Quick Start
 
@@ -60,10 +60,12 @@ When building from source, binaries are in `./deploy/` (use `./deploy/scc` etc.)
 
 | Binary | Description |
 |:-------|:------------|
-| `scc` | Multilevel signed graph clustering |
-| `scc_evolutionary` | Distributed memetic signed graph clustering (MPI) |
+| `scc` | Multilevel signed graph clustering (auto-detects int/double weights) |
+| `scc_evolutionary` | Distributed memetic signed graph clustering (MPI, auto-detects int/double weights) |
 | `scc_evaluator` | Evaluate a clustering solution |
 | `scc_graphchecker` | Check graph format validity |
+
+Each executable automatically detects whether the input graph has integer or floating-point edge weights and dispatches to the appropriate optimized binary (`scc_int`/`scc_double`, etc.).
 
 ---
 
@@ -85,7 +87,7 @@ mpirun -n <procs> scc_evolutionary <graph-file> [options]
 
 ## Graph Format
 
-SCC uses the standard **METIS graph format** with edge weights (format flag `1`). Positive edge weights represent attraction, negative weights represent repulsion.
+SCC uses the standard **METIS graph format** with edge weights (format flag `1`). Positive edge weights represent attraction, negative weights represent repulsion. Both **integer** and **floating-point** (double) edge weights are supported.
 
 **Header line:**
 ```
@@ -102,7 +104,7 @@ v_1 w_1 v_2 w_2 ... v_k w_k
 
 Vertices are **1-indexed**. Positive weights indicate attraction (+), negative weights indicate repulsion (-).
 
-**Example** (4 vertices, 5 edges):
+**Example with integer weights** (4 vertices, 5 edges):
 ```
 4 5 1
 2 1 3 1
@@ -113,13 +115,24 @@ Vertices are **1-indexed**. Positive weights indicate attraction (+), negative w
 
 Vertices 1-2 and 2-4 are attracted (+1), while edges 2-3 and 3-4 are repulsive (-1). The optimal clustering places {1, 2, 4} in one cluster and {3} in another.
 
+**Example with double weights** (4 vertices, 5 edges):
+```
+4 5 1
+2 0.8 3 1.5
+1 0.8 3 -0.3 4 2.1
+1 1.5 2 -0.3 4 -0.7
+2 2.1 3 -0.7
+```
+
+The weight type is detected automatically from the input file. If any edge weight contains a decimal point (`.`) or scientific notation (`e`/`E`), the double-precision code path is used; otherwise the integer path is used.
+
 ---
 
 ## Building from Source
 
 ### Requirements
 
-- C++11 compiler (GCC 7+ or Clang 11+)
+- C++17 compiler (GCC 7+ or Clang 11+)
 - CMake 3.10+
 - MPI (e.g. OpenMPI)
 
