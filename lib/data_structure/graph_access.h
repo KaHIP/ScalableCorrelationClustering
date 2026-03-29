@@ -423,7 +423,7 @@ inline EdgeWeight graph_access::getMaxDegree() {
                         forall_out_edges(ref, e, node) {
                                 cur_degree += getEdgeWeight(e);
                         } endfor
-                        if(abs(cur_degree) > m_max_degree) {
+                        if(std::abs(cur_degree) > m_max_degree) {
                                 m_max_degree = abs(cur_degree);
                         }
                 } endfor

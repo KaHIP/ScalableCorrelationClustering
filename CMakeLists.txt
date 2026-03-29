@@ -11,7 +11,7 @@ if(CCACHE_PROGRAM)
 endif()
 project(KaHIP C CXX)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -166,6 +166,9 @@ set(LIBKAFFPA_SOURCE_FILES
   tools/tools.cpp)
 add_library(libkaffpa OBJECT ${LIBKAFFPA_SOURCE_FILES})
 
+# Double-weight variant of libkaffpa
+add_library(libkaffpa_double OBJECT ${LIBKAFFPA_SOURCE_FILES})
+target_compile_definitions(libkaffpa_double PRIVATE "EDGE_WEIGHT_DOUBLE")
 
 set(LIBCLUSTERING_SOURCE_FILES
   extern/argtable3-3.0.3/argtable3.c
@@ -190,6 +193,10 @@ set(LIBCLUSTERING_SOURCE_FILES
   tools/tools.cpp)
 add_library(libclustering OBJECT ${LIBCLUSTERING_SOURCE_FILES})
 
+# Double-weight variant of libclustering
+add_library(libclustering_double OBJECT ${LIBCLUSTERING_SOURCE_FILES})
+target_compile_definitions(libclustering_double PRIVATE "EDGE_WEIGHT_DOUBLE")
+
 set(LIBCLUSTERING_EVOLUTIONARY_SOURCE_FILES
   lib/algorithms/cycle_search.cpp
   lib/algorithms/strongly_connected_components.cpp
@@ -201,26 +208,58 @@ set(LIBCLUSTERING_EVOLUTIONARY_SOURCE_FILES
 add_library(libclustering_evolutionary OBJECT ${LIBCLUSTERING_EVOLUTIONARY_SOURCE_FILES})
 target_include_directories(libclustering_evolutionary PUBLIC ${MPI_CXX_INCLUDE_PATH})
 
-add_executable(scc_evaluator app/evaluator.cpp $<TARGET_OBJECTS:libkaffpa> )
-target_compile_definitions(scc_evaluator PRIVATE "-DMODE_EVALUATOR")
-target_link_libraries(scc_evaluator ${OpenMP_CXX_LIBRARIES})
-install(TARGETS scc_evaluator DESTINATION bin)
+# Double-weight variant of libclustering_evolutionary
+add_library(libclustering_evolutionary_double OBJECT ${LIBCLUSTERING_EVOLUTIONARY_SOURCE_FILES})
+target_compile_definitions(libclustering_evolutionary_double PRIVATE "EDGE_WEIGHT_DOUBLE")
+target_include_directories(libclustering_evolutionary_double PUBLIC ${MPI_CXX_INCLUDE_PATH})
 
-add_executable(scc_graphchecker app/graphchecker.cpp $<TARGET_OBJECTS:libkaffpa> )
-target_compile_definitions(scc_graphchecker PRIVATE "-DMODE_GRAPHCHECKER")
-target_link_libraries(scc_graphchecker ${OpenMP_CXX_LIBRARIES})
-install(TARGETS scc_graphchecker DESTINATION bin)
+# ===================== Int executables =====================
+add_executable(scc_evaluator_int app/evaluator.cpp $<TARGET_OBJECTS:libkaffpa>)
+target_compile_definitions(scc_evaluator_int PRIVATE "-DMODE_EVALUATOR")
+target_link_libraries(scc_evaluator_int ${OpenMP_CXX_LIBRARIES})
 
+add_executable(scc_graphchecker_int app/graphchecker.cpp $<TARGET_OBJECTS:libkaffpa>)
+target_compile_definitions(scc_graphchecker_int PRIVATE "-DMODE_GRAPHCHECKER")
+target_link_libraries(scc_graphchecker_int ${OpenMP_CXX_LIBRARIES})
 
-add_executable(scc app/signed_graph_clustering.cpp $<TARGET_OBJECTS:libclustering>)
-target_compile_definitions(scc PRIVATE "-DMODE_CLUSTERING")
-target_include_directories(scc PUBLIC ${MPI_CXX_INCLUDE_PATH})
-target_link_libraries(scc ${MPI_CXX_LIBRARIES} ${OpenMP_CXX_LIBRARIES} ${USE_TCMALLOC_LIBS})
-install(TARGETS scc DESTINATION bin)
+add_executable(scc_int app/signed_graph_clustering.cpp $<TARGET_OBJECTS:libclustering>)
+target_compile_definitions(scc_int PRIVATE "-DMODE_CLUSTERING")
+target_include_directories(scc_int PUBLIC ${MPI_CXX_INCLUDE_PATH})
+target_link_libraries(scc_int ${MPI_CXX_LIBRARIES} ${OpenMP_CXX_LIBRARIES} ${USE_TCMALLOC_LIBS})
 
-add_executable(scc_evolutionary app/signed_graph_clustering_evolutionary.cpp $<TARGET_OBJECTS:libclustering> $<TARGET_OBJECTS:libclustering_evolutionary>)
-target_compile_definitions(scc_evolutionary PRIVATE "-DMODE_CLUSTERING_EVOLUTIONARY")
-target_include_directories(scc_evolutionary PUBLIC ${MPI_CXX_INCLUDE_PATH})
-target_link_libraries(scc_evolutionary ${MPI_CXX_LIBRARIES} ${OpenMP_CXX_LIBRARIES} ${USE_TCMALLOC_LIBS})
-install(TARGETS scc_evolutionary DESTINATION bin)
+add_executable(scc_evolutionary_int app/signed_graph_clustering_evolutionary.cpp $<TARGET_OBJECTS:libclustering> $<TARGET_OBJECTS:libclustering_evolutionary>)
+target_compile_definitions(scc_evolutionary_int PRIVATE "-DMODE_CLUSTERING_EVOLUTIONARY")
+target_include_directories(scc_evolutionary_int PUBLIC ${MPI_CXX_INCLUDE_PATH})
+target_link_libraries(scc_evolutionary_int ${MPI_CXX_LIBRARIES} ${OpenMP_CXX_LIBRARIES} ${USE_TCMALLOC_LIBS})
+
+# ===================== Double executables =====================
+add_executable(scc_evaluator_double app/evaluator.cpp $<TARGET_OBJECTS:libkaffpa_double>)
+target_compile_definitions(scc_evaluator_double PRIVATE "-DMODE_EVALUATOR" "EDGE_WEIGHT_DOUBLE")
+target_link_libraries(scc_evaluator_double ${OpenMP_CXX_LIBRARIES})
+
+add_executable(scc_graphchecker_double app/graphchecker.cpp $<TARGET_OBJECTS:libkaffpa_double>)
+target_compile_definitions(scc_graphchecker_double PRIVATE "-DMODE_GRAPHCHECKER" "EDGE_WEIGHT_DOUBLE")
+target_link_libraries(scc_graphchecker_double ${OpenMP_CXX_LIBRARIES})
+
+add_executable(scc_double app/signed_graph_clustering.cpp $<TARGET_OBJECTS:libclustering_double>)
+target_compile_definitions(scc_double PRIVATE "-DMODE_CLUSTERING" "EDGE_WEIGHT_DOUBLE")
+target_include_directories(scc_double PUBLIC ${MPI_CXX_INCLUDE_PATH})
+target_link_libraries(scc_double ${MPI_CXX_LIBRARIES} ${OpenMP_CXX_LIBRARIES} ${USE_TCMALLOC_LIBS})
+
+add_executable(scc_evolutionary_double app/signed_graph_clustering_evolutionary.cpp $<TARGET_OBJECTS:libclustering_double> $<TARGET_OBJECTS:libclustering_evolutionary_double>)
+target_compile_definitions(scc_evolutionary_double PRIVATE "-DMODE_CLUSTERING_EVOLUTIONARY" "EDGE_WEIGHT_DOUBLE")
+target_include_directories(scc_evolutionary_double PUBLIC ${MPI_CXX_INCLUDE_PATH})
+target_link_libraries(scc_evolutionary_double ${MPI_CXX_LIBRARIES} ${OpenMP_CXX_LIBRARIES} ${USE_TCMALLOC_LIBS})
+
+# ===================== Auto-detecting launchers =====================
+add_executable(scc app/scc_launcher.cpp)
+add_executable(scc_evolutionary app/scc_evolutionary_launcher.cpp)
+add_executable(scc_evaluator app/evaluator_launcher.cpp)
+add_executable(scc_graphchecker app/graphchecker_launcher.cpp)
+
+install(TARGETS scc scc_int scc_double
+                scc_evolutionary scc_evolutionary_int scc_evolutionary_double
+                scc_evaluator scc_evaluator_int scc_evaluator_double
+                scc_graphchecker scc_graphchecker_int scc_graphchecker_double
+        DESTINATION bin)
 

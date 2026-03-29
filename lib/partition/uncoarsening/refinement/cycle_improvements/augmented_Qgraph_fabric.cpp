@@ -10,6 +10,7 @@
 #include "algorithms/cycle_search.h"
 #include "augmented_Qgraph_fabric.h"
 #include "data_structure/priority_queues/bucket_pq.h"
+#include "data_structure/priority_queues/maxNodeHeap.h"
 #include "partition_snapshooter.h"
 #include "quality_metrics.h"
 #include "random_functions.h"
@@ -293,8 +294,12 @@ void augmented_Qgraph_fabric::directed_more_locallized_search(PartitionConfig & 
                                                    NodeID start_node, unsigned & number_of_swaps, pairwise_local_search & pls) {
 
         //commons = kway_graph_refinement_commons::getInstance(config);
+#ifdef EDGE_WEIGHT_DOUBLE
+        refinement_pq* queue  = new maxNodeHeap();
+#else
         EdgeWeight max_degree = G.getMaxDegree();
         refinement_pq* queue  = new bucket_pq(max_degree);
+#endif
 
         EdgeWeight int_degree = 0;
         EdgeWeight ext_degree = 0;
@@ -373,9 +378,14 @@ void augmented_Qgraph_fabric::more_locallized_search(PartitionConfig & config, g
         //commons = kway_graph_refinement_commons::getInstance(config);
         refinement_pq* queue_lhs = NULL;
         refinement_pq* queue_rhs = NULL;
+#ifdef EDGE_WEIGHT_DOUBLE
+        queue_lhs = new maxNodeHeap();
+        queue_rhs = new maxNodeHeap();
+#else
         EdgeWeight max_degree = G.getMaxDegree();
         queue_lhs = new bucket_pq(max_degree);
         queue_rhs = new bucket_pq(max_degree);
+#endif
 
         EdgeWeight int_degree = 0;
         EdgeWeight ext_degree = 0;

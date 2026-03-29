@@ -114,6 +114,9 @@ class graph_io {
 		static
 		void writeLogFile(LogVector & output_log, const std::string & filename);
 		///////// Methods for processing logs
+
+                static
+                bool file_has_double_weights(const std::string & filename);
 };
 
 template<typename vectortype>

@@ -15,7 +15,7 @@
 
 #include "data_structure/priority_queues/priority_queue_interface.h"
 
-typedef int Key;
+typedef Gain Key;
 
 template < typename Data >
 class QElement {
@@ -105,13 +105,13 @@ inline NodeID maxNodeHeap::maxElement() {
 
 inline void maxNodeHeap::siftDown( int pos ) {
 
-        int curKey   = m_heap[pos].first;
+        Key curKey   = m_heap[pos].first;
         int lhsChild = 2*pos+1;
         int rhsChild = 2*pos+2;
         if( rhsChild < (int) m_heap.size() ) {
 
-                int lhsKey = m_heap[lhsChild].first;
-                int rhsKey = m_heap[rhsChild].first;
+                Key lhsKey = m_heap[lhsChild].first;
+                Key rhsKey = m_heap[rhsChild].first;
 
                 if( lhsKey < curKey && rhsKey < curKey) {
                         return; // we are done

@@ -68,7 +68,7 @@ EdgeWeight kway_graph_refinement_core::single_kway_refinement_round_internal(Par
         int max_number_of_swaps = (int)(G.number_of_nodes());
         int min_cut_index       = -1;
 
-        EdgeWeight cut         = std::numeric_limits<EdgeWeight>::max()/2; // so we dont need to compute the edge cut
+        EdgeWeight cut         = LARGE_EDGE_WEIGHT; // so we dont need to compute the edge cut
         EdgeWeight initial_cut = cut;
 
         //roll forwards

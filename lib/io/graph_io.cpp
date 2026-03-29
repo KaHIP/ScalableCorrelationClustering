@@ -5,6 +5,8 @@
  * Christian Schulz <christian.schulz.phone@gmail.com>
  *****************************************************************************/
 
+#include <cmath>
+#include <iomanip>
 #include <sstream>
 #include <map>
 #include <unordered_map>
@@ -205,20 +207,25 @@ int graph_io::readWeightedEdgeStreamToGraph(graph_access & G, const std::string 
 		}	
 
 		// Substitute arcs and parallel edges by a single undirected edge whose weight equals the sum of arc weights
-		if (neighbors[real_x].find(real_y) == neighbors[real_x].end() || neighbors[real_x][real_y] == 0) {
+#ifdef EDGE_WEIGHT_DOUBLE
+		auto is_zero = [](EdgeWeight w) { return std::abs(w) < 1e-9; };
+#else
+		auto is_zero = [](EdgeWeight w) { return w == 0; };
+#endif
+		if (neighbors[real_x].find(real_y) == neighbors[real_x].end() || is_zero(neighbors[real_x][real_y])) {
 			neighbors[real_x][real_y] = ew;
 			num_edges++;
 		} else {
 			neighbors[real_x][real_y] += ew;
-			if (neighbors[real_x][real_y] == 0) num_edges--;
+			if (is_zero(neighbors[real_x][real_y])) num_edges--;
 		}
 
-		if (neighbors[real_y].find(real_x) == neighbors[real_y].end() || neighbors[real_y][real_x] == 0) {
+		if (neighbors[real_y].find(real_x) == neighbors[real_y].end() || is_zero(neighbors[real_y][real_x])) {
 			neighbors[real_y][real_x] = ew;
 			num_edges++;
 		} else {
 			neighbors[real_y][real_x] += ew;
-			if (neighbors[real_y][real_x] == 0) num_edges--;
+			if (is_zero(neighbors[real_y][real_x])) num_edges--;
 		}
 	}
 
@@ -237,7 +244,11 @@ int graph_io::readWeightedEdgeStreamToGraph(graph_access & G, const std::string 
 		for (auto& it : neighbors[node]) {
 			NodeID target = it.first;
                         EdgeWeight edge_weight = it.second;
+#ifdef EDGE_WEIGHT_DOUBLE
+			if (std::abs(edge_weight) < 1e-9) continue;
+#else
 			if (edge_weight == 0) continue;
+#endif
                         EdgeID e = G.new_edge(node, target);
                         G.setEdgeWeight(e, edge_weight);
                 }
@@ -263,6 +274,9 @@ int graph_io::writeGraph(graph_access & G, const std::string & filename) {
 
 int graph_io::writeGraphWeighted(graph_access & G, const std::string & filename) {
         std::ofstream f(filename.c_str());
+#ifdef EDGE_WEIGHT_DOUBLE
+        f << std::setprecision(17);
+#endif
         f << G.number_of_nodes() <<  " " <<  G.number_of_edges()/2 <<  " 11" <<  std::endl;
 
         forall_nodes(G, node) {
@@ -376,8 +390,72 @@ void graph_io::writeLogFile(LogVector & output_log, const std::string & filename
 
 	for (int pos=0; pos<output_log.size(); pos++) {
                 f << output_log.timestamp(pos) << " " << output_log.objective(pos) <<  "\n";
-        } 
+        }
 
         f.close();
+}
+
+bool graph_io::file_has_double_weights(const std::string & filename) {
+        std::ifstream in(filename.c_str());
+        if (!in) return false;
+
+        std::string line;
+
+        // skip comment lines
+        std::getline(in, line);
+        while (!in.eof() && (line.empty() || line[0] == '%' || line[0] == '#')) {
+                std::getline(in, line);
+        }
+
+        // parse header: nodes edges [format]
+        std::stringstream hdr(line);
+        long nmbNodes, nmbEdges;
+        int ew = 0;
+        hdr >> nmbNodes >> nmbEdges >> ew;
+
+        bool has_edge_weights = (ew == 1 || ew == 11);
+        bool has_node_weights = (ew == 10 || ew == 11);
+
+        // helper: check if a string token looks like a floating-point number
+        auto is_float_token = [](const std::string & tok) -> bool {
+                for (size_t i = 0; i < tok.size(); i++) {
+                        char c = tok[i];
+                        if (c == '.') return true;
+                        if ((c == 'e' || c == 'E') && i > 0) return true;
+                }
+                return false;
+        };
+
+        // scan up to 20 data lines
+        int lines_checked = 0;
+        while (lines_checked < 20 && std::getline(in, line)) {
+                if (line.empty() || line[0] == '%' || line[0] == '#') continue;
+                lines_checked++;
+
+                std::stringstream ss(line);
+                std::string tok;
+
+                if (ew == 0) {
+                        // edge stream format: src dst weight
+                        // first two tokens are node IDs, third is weight
+                        ss >> tok; // src
+                        ss >> tok; // dst
+                        if (ss >> tok) {
+                                if (is_float_token(tok)) return true;
+                        }
+                } else {
+                        // METIS format: [nodeweight] target weight target weight ...
+                        if (has_node_weights) {
+                                ss >> tok; // skip node weight
+                        }
+                        while (ss >> tok) { // target
+                                if (has_edge_weights && (ss >> tok)) {
+                                        if (is_float_token(tok)) return true;
+                                }
+                        }
+                }
+        }
+
+        return false;
 }
 

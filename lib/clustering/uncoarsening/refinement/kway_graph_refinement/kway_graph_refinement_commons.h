@@ -131,7 +131,7 @@ inline Gain kway_graph_refinement_commons::compute_gain(graph_access & G,
         //for all incident partitions compute gain
         //return max gain and max_gainer partition
         PartitionID source_partition = G.getPartitionIndex(node);
-        EdgeWeight max_degree        = std::numeric_limits<EdgeWeight>::min();
+        EdgeWeight max_degree        = std::numeric_limits<EdgeWeight>::lowest();
         max_gainer                   = INVALID_PARTITION;
 
         // Hoist edge array pointer for direct access (avoid graphref-> per edge)

@@ -36,6 +36,11 @@ typedef uint64_t 		EdgeID;
 typedef int64_t 		EdgeWeight;
 typedef uint64_t 		NodeID;
 typedef uint64_t 		NodeWeight;
+#elif defined(EDGE_WEIGHT_DOUBLE)
+typedef unsigned int 		EdgeID;
+typedef double 			EdgeWeight;
+typedef unsigned int 		NodeID;
+typedef unsigned int 		NodeWeight;
 #else
 typedef unsigned int 		EdgeID;
 typedef int 			EdgeWeight;
@@ -48,7 +53,12 @@ typedef unsigned int 		Count;
 typedef std::vector<NodeID> boundary_starting_nodes;
 typedef long FlowType;
 
-const EdgeWeight MIN_EDGE_WEIGHT       = std::numeric_limits<EdgeWeight>::min();
+const EdgeWeight MIN_EDGE_WEIGHT       = std::numeric_limits<EdgeWeight>::lowest();
+#ifdef EDGE_WEIGHT_DOUBLE
+const EdgeWeight LARGE_EDGE_WEIGHT     = 1e15; // sentinel for FM refinement (DBL_MAX/2 loses precision)
+#else
+const EdgeWeight LARGE_EDGE_WEIGHT     = std::numeric_limits<EdgeWeight>::max()/2;
+#endif
 const EdgeID UNDEFINED_EDGE            = std::numeric_limits<EdgeID>::max();
 const NodeID UNDEFINED_NODE            = std::numeric_limits<NodeID>::max();
 const NodeID UNASSIGNED                = std::numeric_limits<NodeID>::max();

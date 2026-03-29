@@ -85,7 +85,7 @@ void population::insert(graph_access & G, Individuum & ind) {
         if(m_internal_population.size() < m_population_size) {
                 m_internal_population.push_back(ind);
         } else {
-                EdgeWeight worst_objective = std::numeric_limits<EdgeWeight>::min();
+                EdgeWeight worst_objective = std::numeric_limits<EdgeWeight>::lowest();
                 for( unsigned i = 0; i < m_internal_population.size(); i++) {
                         if(m_internal_population[i].objective > worst_objective) {
                                 worst_objective = m_internal_population[i].objective;
