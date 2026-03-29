@@ -178,8 +178,8 @@ inline void greedy_neg_cycle::init_gains_new( PartitionConfig & partition_config
         forall_nodes(G_bar, block) {
                 forall_out_edges(G_bar, e, block) {
                         NodeID target_block = G_bar.getEdgeTarget(e);
-                        EdgeWeight max_gain = std::numeric_limits<EdgeWeight>::min()/100;
-              
+                        EdgeWeight max_gain = std::numeric_limits<EdgeWeight>::lowest()/100;
+
                         PartialBoundary & lhs_b = boundary.getDirectedBoundary(block, block, target_block);
                         
                         std::vector<NodeID> lhs_boundary;
@@ -242,7 +242,7 @@ inline void greedy_neg_cycle::init_gains( PartitionConfig & partition_config,
         forall_nodes(G_bar, block) {
                 forall_out_edges(G_bar, e, block) {
                         NodeID target_block = G_bar.getEdgeTarget(e);
-                        EdgeWeight max_gain = std::numeric_limits<EdgeWeight>::min()/100;
+                        EdgeWeight max_gain = std::numeric_limits<EdgeWeight>::lowest()/100;
 
                         forall_nodes(G, node) {
                                 bool valid = true;

@@ -36,6 +36,9 @@ EdgeWeight two_way_fm::perform_refinement(PartitionConfig & cfg,
                                           bool & something_changed) {
 
         PartitionConfig config = cfg; //copy it since we make changes on that
+#ifdef EDGE_WEIGHT_DOUBLE
+        config.use_bucket_queues = false;
+#endif
         if(lhs_start_nodes.size() == 0 or rhs_start_nodes.size() == 0) return 0; // nothing to refine
 
         quality_metrics qm;

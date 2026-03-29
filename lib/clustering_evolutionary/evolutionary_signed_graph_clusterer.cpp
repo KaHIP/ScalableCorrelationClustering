@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <iostream>
 #include <mpi.h>
+#include "tools/mpi_edge_weight.h"
 #include "diversifyer.h"
 #include "exchange/exchanger.h"
 #include "graph_partitioner.h"
@@ -186,9 +187,9 @@ EdgeWeight evolutionary_signed_graph_clusterer::collect_best_clustering(graph_ac
 	EdgeWeight min_objective = 0;
 	m_island->apply_fittest(G, min_objective);
 
-	int best_local_objective  = min_objective;
-	int best_local_objective_m  = min_objective;
-	int best_global_objective = 0;
+	EdgeWeight best_local_objective  = min_objective;
+	EdgeWeight best_local_objective_m  = min_objective;
+	EdgeWeight best_global_objective = 0;
 
 	PartitionID* best_local_map = new PartitionID[G.number_of_nodes()];
 	std::vector< NodeWeight > block_sizes(G.get_partition_count(),0);
@@ -205,16 +206,16 @@ EdgeWeight evolutionary_signed_graph_clusterer::collect_best_clustering(graph_ac
 		}
 	}
 
-	MPI_Allreduce(&best_local_objective_m, &best_global_objective, 1, MPI_INT, MPI_MIN, m_communicator);
+	MPI_Allreduce(&best_local_objective_m, &best_global_objective, 1, mpi_edge_weight_type(), MPI_MIN, m_communicator);
 
-	if( best_global_objective == std::numeric_limits< int >::max()) {
+	if( best_global_objective == std::numeric_limits<EdgeWeight>::max()) {
 		//no partition is feasible
-		MPI_Allreduce(&best_local_objective, &best_global_objective, 1, MPI_INT, MPI_MIN, m_communicator);
+		MPI_Allreduce(&best_local_objective, &best_global_objective, 1, mpi_edge_weight_type(), MPI_MIN, m_communicator);
 	}
 
 	int my_domain_weight   = best_local_objective == best_global_objective ?
 		max_domain_weight : std::numeric_limits<int>::max();
-	int best_domain_weight = max_domain_weight;
+	int best_domain_weight = (int)max_domain_weight;
 
 	MPI_Allreduce(&my_domain_weight, &best_domain_weight, 1, MPI_INT, MPI_MIN, m_communicator);
 

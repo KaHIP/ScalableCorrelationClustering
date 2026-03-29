@@ -3,9 +3,11 @@
 //
 
 #include <argtable3.h>
+#include <iomanip>
 #include <lib/clustering/signed_graph_clusterer.h>
 #include <tools/tools.h>
 #include <mpi.h>
+#include "tools/mpi_edge_weight.h"
 #include "parse_parameters.h"
 #include "partition/partition_config.h"
 #include "data_structure/graph_access.h"
@@ -21,6 +23,9 @@ void write_log(std::string & filename, std::stringstream& filebuffer_string);
 
 int main(int argn, char **argv) {
         MPI_Init(&argn, &argv);    /* starts MPI */
+#ifdef EDGE_WEIGHT_DOUBLE
+        std::cout << std::setprecision(17);
+#endif
         std::stringstream filebuffer_string;
 
         // Reading the graph
@@ -113,7 +118,7 @@ int main(int argn, char **argv) {
         quality_metrics qm;
 
         std::cout <<  "performing clustering!"  << std::endl;
-        EdgeWeight local_best_cut = std::numeric_limits<int>::max();
+        EdgeWeight local_best_cut = std::numeric_limits<EdgeWeight>::max();
         if(partition_config.time_limit == 0) {
                 signed_graph_clusterer clusterer;
                 clusterer.perform_signed_clustering(partition_config, G);
@@ -151,8 +156,8 @@ int main(int argn, char **argv) {
         }
         MPI_Barrier(communicator);
 
-        int overall_best_cut;
-        MPI_Reduce(&local_best_cut, &overall_best_cut, 1, MPI_INT, MPI_MIN, 0, MPI_COMM_WORLD);
+        EdgeWeight overall_best_cut;
+        MPI_Reduce(&local_best_cut, &overall_best_cut, 1, mpi_edge_weight_type(), MPI_MIN, 0, MPI_COMM_WORLD);
 
         int myrank = local_best_cut == overall_best_cut ? rank : 0;
         int minrank;

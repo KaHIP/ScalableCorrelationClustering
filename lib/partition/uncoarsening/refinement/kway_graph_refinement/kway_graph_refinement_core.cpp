@@ -56,11 +56,14 @@ EdgeWeight kway_graph_refinement_core::single_kway_refinement_round_internal(Par
         if( commons == NULL ) commons = new kway_graph_refinement_commons(config);
 
         refinement_pq* queue = NULL;
+#ifndef EDGE_WEIGHT_DOUBLE
         if(config.use_bucket_queues) {
                 EdgeWeight max_degree = G.getMaxDegree();
                 queue                 = new bucket_pq(max_degree);
-        } else {
-                queue                 = new maxNodeHeap(); 
+        } else
+#endif
+        {
+                queue                 = new maxNodeHeap();
         }
 
         init_queue_with_boundary(config, G, start_nodes, queue, moved_idx);  
@@ -74,7 +77,7 @@ EdgeWeight kway_graph_refinement_core::single_kway_refinement_round_internal(Par
         int max_number_of_swaps = (int)(G.number_of_nodes());
         int min_cut_index       = -1;
 
-        EdgeWeight cut         = std::numeric_limits<int>::max()/2; // so we dont need to compute the edge cut
+        EdgeWeight cut         = LARGE_EDGE_WEIGHT; // so we dont need to compute the edge cut
         EdgeWeight initial_cut = cut;
 
         //roll forwards

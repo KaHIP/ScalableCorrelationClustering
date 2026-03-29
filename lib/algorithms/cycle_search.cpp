@@ -6,6 +6,7 @@
  *****************************************************************************/
 
 #include <algorithm>
+#include <cmath>
 #include "algorithms/strongly_connected_components.h"
 #include "cycle_search.h"
 #include "random_functions.h"
@@ -152,7 +153,7 @@ bool cycle_search::find_shortest_path(graph_access & G,
                                       NodeID & dest, 
                                       std::vector<NodeID> & cycle) {
 
-        std::vector<EdgeWeight> distance(G.number_of_nodes(), std::numeric_limits<EdgeWeight>::max()/2);
+        std::vector<EdgeWeight> distance(G.number_of_nodes(), LARGE_EDGE_WEIGHT);
         std::vector<NodeID> parent(G.number_of_nodes(), std::numeric_limits<NodeID>::max());
 
         bool negative_cycle_detected = negative_cycle_detection(G, start, distance, parent, cycle);
@@ -174,7 +175,7 @@ bool cycle_search::find_shortest_path(graph_access & G,
 bool cycle_search::find_negative_cycle(graph_access & G, NodeID & start, std::vector<NodeID> & cycle) {
 	//simplest bellman ford algorithm
 
-	std::vector<EdgeWeight> distance(G.number_of_nodes(), std::numeric_limits<EdgeWeight>::max()/2);
+	std::vector<EdgeWeight> distance(G.number_of_nodes(), LARGE_EDGE_WEIGHT);
         std::vector<NodeID> parent(G.number_of_nodes(), std::numeric_limits<NodeID>::max());
 
         return negative_cycle_detection(G, start, distance, parent, cycle);
@@ -348,7 +349,7 @@ bool cycle_search::negative_cycle_detection(graph_access & G,
 //preconditition: no negative cycles 
 bool cycle_search::find_zero_weight_cycle(graph_access & G, NodeID & start, std::vector<NodeID> & cycle) {
 
-        std::vector<EdgeWeight> distance(G.number_of_nodes(), std::numeric_limits<EdgeWeight>::max()/2);
+        std::vector<EdgeWeight> distance(G.number_of_nodes(), LARGE_EDGE_WEIGHT);
 	std::vector<NodeID> parent(G.number_of_nodes(), std::numeric_limits<NodeID>::max());
         bool negative_weight_cycle = negative_cycle_detection(G, start, distance, parent, cycle);
         if(!negative_weight_cycle) {
@@ -365,7 +366,11 @@ bool cycle_search::find_zero_weight_cycle(graph_access & G, NodeID & start, std:
                                NodeID target                   = G.getEdgeTarget(e);
                                EdgeWeight modified_edge_weight = G.getEdgeWeight(e) + distance[node] - distance[target]; 
                                ASSERT_GEQ(modified_edge_weight, 0);
+#ifdef EDGE_WEIGHT_DOUBLE
+                               if(std::abs(modified_edge_weight) < 1e-9) {
+#else
                                if(modified_edge_weight == 0) {
+#endif
                                         EdgeID shadow_edge              = W.new_edge(shadow_node, target);
                                         W.setEdgeWeight(shadow_edge, 0);
                                }
