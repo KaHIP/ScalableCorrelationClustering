@@ -19,6 +19,8 @@ SCC v1.3
 
 **SCC** (Scalable Correlation Clustering) is a framework for clustering signed graphs, where edges carry positive (attraction) or negative (repulsion) weights. Part of the [KaHIP](https://github.com/KaHIP) organization.
 
+> **Python Interface:** An easy-to-use Python interface for this software is available in [CHSZLabLib](https://github.com/CHSZLab/CHSZLabLib).
+
 | | |
 |:--|:--|
 | **What it solves** | Cluster signed graphs by grouping nodes with positive connections while separating nodes with negative connections |
